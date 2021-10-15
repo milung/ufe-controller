@@ -1,0 +1,37 @@
+apiVersion: fe.milung.eu/v1
+kind: WebComponent
+metadata: 
+  name: profile-app
+  labels: 
+    app: sample
+    area: top-navigation
+spec:   
+  module-uri: http://profile-ui/module/profile.esm.js
+  navigation:
+  - path: my-account
+    title: My account    
+    element: user-profile
+    attributes:
+    - name: api-url
+      value: http://profile/api
+    - name: avatar
+      value: true
+---
+apiVersion: fe.milung.eu/v1
+kind: WebComponent
+metadata: 
+  name: ambulances
+  labels: 
+    app: sample
+    area: top-navigation
+spec: 
+  module-uri: http://ambulances-ui/module/ambulances.esm.js
+  navigation:
+  - path: ambulances
+    title: Ambulances
+    element: ambulances
+    attributes:
+    - name: api-url
+      value: http://ambulances/api
+    - name: avatar
+      value: true
