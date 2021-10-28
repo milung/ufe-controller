@@ -26,8 +26,10 @@
 :- http_handler(root('fe-config'), serve_fe_config, [prefix]).
 :- http_handler(root('assets'), serve_assets, [prefix]).
 :- http_handler(root(modules), serve_assets, [prefix]).
+:- http_handler(root('web-components'), serve_webcomponents, [prefix]). 
 :- http_handler(root('favicon.ico'), http_reply_file(assets('icon/favicon.ico'), []), []).
 :- http_handler(root(.), serve_spa, [prefix]).    
+
 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%%
 

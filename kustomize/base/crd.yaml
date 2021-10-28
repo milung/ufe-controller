@@ -30,6 +30,24 @@ spec:
                     emsures that the module is loaded when application starts.
                   type: boolean
                   default: false
+                proxy: 
+                  description: |
+                    Specifies if the web components loading shall be proxied by the controller. 
+                    This is usefull if the web component is served from the cluster and 
+                    not accessible from the outside of the cluster network. The module will be served
+                    from the URL `<base controller URI>/web-components/<WebComponent name>.jsm`. 
+                    This is recommended approach for the standard assumed use-case.
+                  type: boolean
+                  default: true
+                hash-suffix: 
+                  description: |
+                    A hash string to identify the particular version of the module uri in case of 
+                    controller proxying it. If `proxy` property is set, and `hash` property is set then 
+                    the final module file name is `<WebComponent name>.<hash-suffix>.jsm` and the resource is 
+                    assumed to never expire. To refresh user agents` caches, one needs to change the hash 
+                    to a new unique value. 
+                  type: string
+
                 navigation:
                   description: |
                     Components with the navigation specification may be used as sub-paths

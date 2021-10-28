@@ -35,14 +35,18 @@ export class AppRoot {
   }
 
   app_render(app) {
-    let Component = app.element;
+    let content = `<${app.element}`;
+    app.attributes.forEach(attribute => {
+      content += ` ${attribute.name}="${attribute.value}"`;
+    });
+    content += `></${app.element}>`;
     return (
       <Route 
         path={'/' + app.path}
         render={ () => {
           let url = app.load_url;
           import(url);          
-          return <Component>{app.title}</Component>;
+          return <div class="application-area" innerHTML={content}></div>;
         }} />
     )
   }

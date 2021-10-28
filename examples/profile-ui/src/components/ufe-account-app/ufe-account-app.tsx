@@ -22,7 +22,7 @@ export class uFeAccountApp {
         </div>
         <div>
           <h2>{this.userName}</h2>
-          <i>{this.identity}</i>
+          <i>{this.identity}</i >
       </div>
     </div>
     );

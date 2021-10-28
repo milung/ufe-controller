@@ -71,4 +71,7 @@ install_package(package(Name, _)) :-
 % bootstrap the execution
 :- use_module(source(server)).
 :- use_module(source(routing)).
+:- use_module(source(status_pages)).
+:- use_module(source(http_extra/http_extra)).
 :- use_module(source(fe_config/fe_config)).
+:- use_module(source(http_extra/http_extra)).
