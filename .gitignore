@@ -1,2 +1,3 @@
 controller/www
 controller/.packages
+controller/.packages/k8s_client
