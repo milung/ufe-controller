@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\web-ui"
+		},
+		{
+			"path": "..\\examples\\profile-ui"
+		},
+		{
+			"path": "..\\kustomize"
+		}
+	],
+	"settings": {}
+}

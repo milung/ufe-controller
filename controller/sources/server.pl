@@ -1,7 +1,7 @@
 :- module(server, [
     server/0, 
-    server/1,                  % +Port:number
-    serve_assets/1             % +Request:list
+    server/1                 % +Port:number
+
 ]).
 %! <module> HTTP server hooks
 % Predicates for creating and running http server.
@@ -13,6 +13,7 @@
 :- use_module(library(http/html_write)).
 
 :- use_module(source(api/api)). % api implementation is assumed to export all operations for openapi package serving
+
 
 :- multifile 
     user:file_search_path/2,
@@ -70,19 +71,7 @@ is_server_dead(Port) :-
     http_current_worker(Port, _ ), 
     ! .   
 
-%! serve_assets(+Request:list) is det
-%  checks for existence of the resource from Request's URI 
-%  and serves it to http server. Throws =|http_reply(not_found(Path)|= 
-% if asset does not exists
-serve_assets( Request) :-
-    option(path_info(Asset), Request),
-    absolute_file_name(html(Asset), Absolute),
-    exists_file(Absolute),    
-    access_file(Absolute, read),
-    http_reply_file(assets(Asset), [], Request).
-serve_assets(Request) :-
-    option(path(Path), Request),
-    throw(http_reply(not_found(Path))).
+
 
 %! server_start_and_wait is det
 %  Starts the http server listening at the port specified by the server:port setting and wait

@@ -11,6 +11,7 @@
 :- use_module(library(mustache)).
 
 :- use_module(source(fe_config/fe_config)).
+:- use_module(source(http_extra/http_extra)).
 
 :- multifile 
     user:file_search_path/2,
@@ -27,7 +28,7 @@
 :- http_handler(root('assets'), serve_assets, [prefix]).
 :- http_handler(root(modules), serve_assets, [prefix]).
 :- http_handler(root('web-components'), serve_webcomponents, [prefix]). 
-:- http_handler(root('favicon.ico'), http_reply_file(assets('icon/favicon.ico'), []), []).
+:- http_handler(root('favicon.ico'), http_reply_file(asset('icon/favicon.ico'), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]), []).
 :- http_handler(root(.), serve_spa, [prefix]).    
 
 
@@ -35,19 +36,7 @@
 
 %%%  PRIVATE PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%
 
-%  serve_assets(+Request:list) is det
-%  checks for existence of the resource from Request's URI 
-%  and serves it to http server. Throws =|http_reply(not_found(Path)|= 
-% if asset does not exists
-serve_assets( Request) :-
-    option(path_info(Asset), Request),
-    absolute_file_name(asset(Asset), Absolute),
-    exists_file(Absolute),    
-    access_file(Absolute, read),
-    http_reply_file(asset(Asset), [], Request).
-serve_assets(Request) :-
-    option(path(Path), Request),
-    throw(http_reply(not_found(Path))).
+
 
 
 serve_spa( Request) :-

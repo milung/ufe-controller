@@ -8,47 +8,75 @@
 %! <module> Predicates for observing the K8s resources and transforming it into the 
 %  configuration for the microfrontends
 
-:- use_module(library(http/http_json)).
-:- use_module(library(k8s_client)).
-:- use_module(library(memfile)).
 :- use_module(library(http/http_client)).
-:- use_module(library(http/http_header)).
-:- use_module(library(uri)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_header)).
+:- use_module(library(http/http_json)).
+:- use_module(library(http/json)).
+:- use_module(library(k8s_client)).
+:- use_module(library(md5)).
+:- use_module(library(memfile)).
+:- use_module(library(uri)).
 
 :- use_module(source(http_extra/http_extra)).
 
 :- dynamic 
     k8s/3,
-    config_cache/1,
+    config_cache/3, % Config:dict, Etag:atom, LastModifiet:float
     watcher_exit/1.
 
 :- initialization(start_fe_config_controller).
 :- at_halt(stop_fe_config_controller).
 
+:- multifile http_header:field_name//1.
+
+http_header:field_name(etag) --> "ETag".
+
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %! serve_fe_config(+Request) is det
 %  Serves the Frontend configuration file as collected by the k8s controller
-serve_fe_config(_) :-
-    config_cache(Config), 
-    reply_json(Config).
+serve_fe_config(Request) :-
+    config_cache(_, Etag, LastModifiedStamp), 
+    \+ request_match_condition(Request, Etag, LastModifiedStamp, _),
+    http_timestamp(LastModifiedStamp, LastModified),  
+    throw(http_reply(not_modified,[cache_control('public, max-age=3600'), etag(Etag), last_modified(LastModified)])).
+    serve_fe_config(Request) :-
+    config_cache(Config, Etag, LastModifiedStamp), 
+    http_timestamp(LastModifiedStamp, LastModified),
+    http_response(Request, json(Config), [cache_control('public, max-age=3600'), etag(Etag), last_modified(LastModified)], ok).
 
 serve_webcomponents(Request) :-
-    webcomponent_uri(Request, Uri),
+    webcomponent_uri(Request, _, ETag),
+    (   ETag \= []
+    ->  \+ request_match_condition(Request, ETag, _, _),
+        throw(http_reply(not_modified, [cache_control('public, max-age=31536000, immutable'), etag(ETag)]))
+    ).
+ serve_webcomponents(Request) :-
+    webcomponent_uri(Request, Uri, Hash),
     http_get(Uri, Bytes, [
             to(codes),
             input_encoding(octet),
             status_code(Status),
             header(content_type, ContentType),
+            header(etag, EtagExt),
+            header(last_modified, LastModifiedExt),
+            header(cache_control, CacheControlExt),
             timeout(10)]),
     (   Status = 404
     ->  http_404([], Request)
     ;   between(500, 599, Status)
     ->  format( atom(Msg), 'The web-component gateway returned ~w', [Status]),
         http_response(Request, Msg, [],  502)
-    ;   http_response(Request, bytes(ContentType, Bytes), [], Status)
-    
+    ;   (   Hash \= []
+        ->  Headers = [cache_control('public, max-age=31536000, immutable'), etag(Hash)]
+        ;   % copy caching control headers from the remote provider
+            Headers0 = [],
+            ( nonvar(EtagExt) -> Headers1 = [etag(EtagExt)| Headers0]; Headers1 = Headers0 ),
+            ( nonvar(LastModifiedExt) -> Headers2 = [last_modified(LastModifiedExt)| Headers1] ; Headers2 = Headers1 ),
+            ( nonvar(CacheControlExt) -> Headers = [cache_control(CacheControlExt)| Headers2] ; Headers = Headers2 )
+        ),
+        http_response(Request, bytes(ContentType, Bytes), Headers, Status)
     ).
 
 %! start_fe_config_controller is det
@@ -75,9 +103,12 @@ fe_config_update :-
         k8s(_, _, Resource),
         Resources ),
     foldl(resource_config, Resources, _{ apps: [], preload:[] }, Config),
+    atom_json_dict(Text, Config, [as(atom)]),
+    md5_hash(Text, Etag, []),
     transaction(
-        (   retractall(config_cache(_)),
-            assert(config_cache(Config))
+        (   retractall(config_cache(_, _, _)),
+            get_time(LastModifiedStamp),
+            assert(config_cache(Config, Etag, LastModifiedStamp))
         )
     ).
 
@@ -112,7 +143,7 @@ resource_config_app(Resource, CfgIn, CfgOut) :-
     foldl(resource_navigation_config(Resource), Navigations, CfgIn, CfgOut ).
 
 resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
-    atomic_list_concat(['/web-components/',  Resource.metadata.name, '/',  Resource.metadata.name, '.jsm'], ModuleUri),
+    resource_moduleUri( Resource, ModuleUri),
     (   Roles = Navigation.get(roles)
     ->  split_string(Roles, ",; ", ",; ", RolesList)
     ;   RolesList = ['*']
@@ -122,8 +153,7 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     ;   Labels = []),
     (   Attributes = Navigation.get(attributes)
     ->  true
-    ;   Attributes = []),
-    
+    ;   Attributes = [] ),
     App = _{
         title: Navigation.title,
         path: Navigation.path,
@@ -136,6 +166,7 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     CfgOut = CfgIn.put(apps, [App | CfgIn.apps ]),
     !. 
 
+
 resource_config_preload(Resource, CfgIn, CfgOut) :-
     (   true = Resource.spec.get(preload)
     ->  atomic_list_concat(['/web-components/',  Resource.metadata.name, '.jsm'], ModuleUri),
@@ -143,14 +174,29 @@ resource_config_preload(Resource, CfgIn, CfgOut) :-
     ;   CfgOut = CfgIn
     ).
 
-webcomponent_uri(Request, Uri) :-
+resource_moduleUri(Resource, ModuleUri) :-
+(   atom_string(true, Resource.spec.get(proxy))
+->  (   Suffix0 = Resource.spec.get('hash-suffix')
+    ->  atomic_list_concat(['.', Suffix0], Suffix)
+    ;   Suffix = ''
+    ),
+    atomic_list_concat(['/web-components/',  Resource.metadata.name, '/',  Resource.metadata.name, Suffix, '.jsm'], ModuleUri)
+;   atom_string( ModuleUri, Resource.spec.'module-uri')
+).
+
+webcomponent_uri(Request, Uri, Hash) :-
     option(path_info(Path), Request),
-    atomic_list_concat(['',Component,SubPath], '/', Path),
+    atomic_list_concat(['',Component,_], '/', Path),
     k8s(_, Component, Resource),
-    atomic_list_concat([Component, '.jsm'], SubPath),
+    (   Hash = Resource.spec.get('hash-suffix') 
+    ->  true 
+    ;   Hash = []
+    ),
+    resource_moduleUri(Resource, ModuleUri),
+    atom_concat('/web-components', Path, ModuleUri),
     Uri = Resource.spec.'module-uri',
     !.
- webcomponent_uri(Request, Uri) :-
+ webcomponent_uri(Request, Uri, []) :-
   option(path_info(Path), Request),
     atomic_list_concat(['',Component|SubPath], '/', Path),
     k8s(_, Component, Resource),
