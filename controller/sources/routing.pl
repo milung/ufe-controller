@@ -9,10 +9,11 @@
 :- use_module(library(http/http_header)).
 :- use_module(library(execution_context)).
 :- use_module(library(mustache)).
+:- use_module(library(dcg/basics)).
 
 :- use_module(source(fe_config/fe_config)).
 :- use_module(source(http_extra/http_extra)).
-
+ 
 :- multifile 
     user:file_search_path/2,
     http:status_page/3,
@@ -22,22 +23,186 @@
     http:location/3.
 
 
+%%%%%%%%%   CONTEXT   VARIABLES %%%%%%%%%%%%%%%%%%%%
+:- context_variable(app_title, atom, [
+    env('APPLICATION_TITLE'), 
+    default('Application shell'), 
+    describe(
+        'Language fallback application title, language specific \c
+        titles are also possible, e.g. APPLICATION_TITLE_EN_US')]).
+:- context_variable(app_title_short, atom, [
+    env('APPLICATION_TITLE_SHORT'), 
+    default('Shell'), 
+    describe(
+        'Short version of the language fallback application title, language specific \c
+        titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US')]).
+:- context_variable(app_description, atom, [
+    env('APPLICATION_DESCRIPTION'), 
+    default('Application shell for encapsulating micro-fron-ends'), 
+    describe(
+        'Description of the language fallback application for meta attributes, language specific \c
+        titles are also possible, e.g. APPLICATION_DESCRIPTION_EN_US')]).
+:- context_variable(accepts_languages, list, [
+    env('ACCEPTS_LANGUAGES'), 
+    default(['en']), 
+    describe(
+        'List of semicolon, or comma separated language codes that are supported. \c
+         If there is match between `Accept-Language` header and this list, then language \c
+         of html element is set to such language. In case there is no match then html language \c
+         is set to the first language in this list.')]).
+:- context_variable(background_color, atom, [
+    env('MANIFEST_BACKGROUND_COLOR'), 
+    default('#16161d'), 
+    describe(
+        'background color to use in the `manifest.json`')]).
+:- context_variable(theme_color, atom, [
+    env('MANIFEST_BACKGROUND_COLOR'), 
+    default('#16161d'), 
+    describe(
+        'theme color to use in the `manifest.json`')]).
+:- context_variable(csp_header, atom, [
+    env('HTTP_CSP_HEADER'), 
+    default(
+        'default-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
+         font-src https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
+         script-src ''nonce-{NONCE_VALUE}''; '), 
+    describe(
+        'Content Security Policy header directives for serving \c
+         the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
+         automatically replaced by the random nonce text used to \c
+         augment `<script>` elements in the html file.')]).
+
 % default rooting - adapt to project needs
 
 :- http_handler(root('fe-config'), serve_fe_config, [prefix]).
+:- http_handler(root('manifest.json'), serve_manifest, []).
 :- http_handler(root('assets'), serve_assets, [prefix]).
 :- http_handler(root(modules), serve_assets, [prefix]).
 :- http_handler(root('web-components'), serve_webcomponents, [prefix]). 
 :- http_handler(root('favicon.ico'), http_reply_file(asset('icon/favicon.ico'), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]), []).
-:- http_handler(root(.), serve_spa, [prefix]).    
-
-
+:- http_handler(root(.), serve_spa, [prefix]). 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%  PRIVATE PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%  PRIVATE PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%  
+get_nonce(Nonce) :-
+    length(Codes, 128),
+    maplist(random(32, 127), Codes),
+    atom_codes(Text, Codes),
+    base64(Text, Nonce),
+    !.
 
+html_lang_variable(Language, _, EnvironmentName, Value) :-
+    atomic_list_concat([EnvironmentName, Language], '_', ENV0), 
+    getenv(ENV0, Value),
+    !.
+ html_lang_variable(Language, _, EnvironmentName, Value) :-
+    atomic_list_concat([Lang, _], '_', Language),
+    atomic_list_concat([EnvironmentName, Lang], '_', ENV0), 
+    getenv(ENV0, Value),
+    !.
+ html_lang_variable(_, CtxName, _, Value) :-
+    context_variable_value(CtxName, Value),
+    !.
+ html_lang_variable(_, _, _, '').
 
+html_variables(
+    Request, 
+    [   'bae-href'=BaseUrl, 
+        'background-color' = BckColor, 
+        'theme-color' = ThemeColor, 
+        language = Language, 
+        'app-title' = Title, 
+        'app-title-short' = ShortTitle, 
+        description=Description
+    ]
+) :-
+    context_variable_value(server:server_base_url, BaseUrl),
+    context_variable_value(background_color, BckColor),
+    context_variable_value(theme_color, ThemeColor), 
+    context_variable_value(accepts_languages, SupportedLangs),
+    request_match_language(Request, SupportedLangs, Language), 
+    html_lang_variable(Language, app_title, 'APPLICATION_TITLE', Title),
+    html_lang_variable(Language, app_title_short, 'APPLICATION_TITLE_SHORT', ShortTitle),
+    html_lang_variable(Language, app_description, 'APPLICATION_DESCRIPTION', Description),   
+    !.
+
+file_replace_nonce(File, Nonce, Codes) :-
+    atomic_list_concat(['<script nonce="', Nonce, '" '], NonceScript),
+    atom_codes(NonceScript, NonceReplace),
+    absolute_file_name(File, Index),
+    phrase_from_file(nonce_html(NonceReplace, Codes),  Index),
+    !.
+nonce_html(_, []) --> eos, !.
+ nonce_html(ScriptNonce, Codes) -->
+    "<script>",
+    {   append(ScriptNonce, [ 0'> ], SN1),        
+        append(SN1, Rest, Codes) 
+    },
+    !,
+    nonce_html(ScriptNonce, Rest).
+ nonce_html(ScriptNonce, Codes) -->
+    "<script ",
+    { append(ScriptNonce, Rest, Codes) },
+    !,
+    nonce_html(ScriptNonce, Rest).
+ nonce_html(ScriptNonce, [C| Codes])  -->
+    [C],
+    nonce_html(ScriptNonce,  Codes).
+
+serve_manifest( Request) :-
+    html_variables(Request, Variables),
+    context_variable_value(accepts_languages, SupportedLangs),
+    request_match_language(Request, SupportedLangs, Language),
+    asset_by_language(html('manifest.json'), Language, Asset),
+    mustache_from_file(Asset, Variables, Text),
+    http_response(
+        Request, 
+        codes('application/json; charset=UTF-8', Text),
+        [ cache_control('public, max-age=3153600, immutable') ]
+    ).
 
 serve_spa( Request) :-
-    http_reply_file(html('index.html'), [], Request).
+    context_variable_value(csp_header, Csp),
+    get_nonce(Nonce),
+    interpolate_string(Csp, CspNonce, ['NONCE_VALUE'=Nonce], []),
+    context_variable_value(csp_header, Csp),
+    context_variable_value(accepts_languages, SupportedLangs),
+    request_match_language(Request, SupportedLangs, Language),
+    asset_by_language(html('index.html'), Language, Asset),
+    file_replace_nonce(Asset, Nonce, TemplateCodes),
+    html_variables(Request, Variables),
+    phrase(mustache(Variables, TemplateCodes), Text),
+    http_response(
+        Request, 
+        codes('text/html; charset=UTF-8', Text),
+        [ content_security_policy(CspNonce), cache_control('public, max-age=60') ]
+    ).
+
+asset_by_language(Asset, Language, Path) :-
+    absolute_file_name(Asset, Path0, [access(read), file_errors(fail)]), 
+    file_name_extension(Base, Ext, Path0),
+    file_name_extension(Base, Language, Base2),
+    file_name_extension(Base2, Ext, Path2),
+    (   atomic_list_concat([Lang, _], '_', Language) 
+    ->  file_name_extension(Base, Lang, Base1),
+        file_name_extension(Base1, Ext, Path1)
+    ;   Path1 = Path0
+    ),
+    (   access_file( Path2, read)
+    ->  Path = Path2
+    ;   access_file( Path1, read)
+    ->  Path = Path1
+    ;   access_file( Path0, read)
+    ->  Path = Path0
+    ;   fail
+    ),
+    !.
+
+
+
+
+
+
+
+    

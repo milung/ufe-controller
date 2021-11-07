@@ -6,6 +6,7 @@
 %! <module> HTTP server hooks
 % Predicates for creating and running http server.
 :- use_module(library(execution_context)).
+:- use_module(library(execution_cli)).
 :- use_module(library(openapi)).
 :- use_module(library(swagger_ui)).
 :- use_module(library(http/thread_httpd)).
@@ -13,7 +14,6 @@
 :- use_module(library(http/html_write)).
 
 :- use_module(source(api/api)). % api implementation is assumed to export all operations for openapi package serving
-
 
 :- multifile 
     user:file_search_path/2,
@@ -29,6 +29,7 @@
 :- debug(error).
 :- debug(error(_)).
 
+
 :- context_variable(port, number, [
     env('HTTP_PORT'), default(80), 
     describe('HTTP port the server is listening on.')]).
@@ -36,10 +37,17 @@
     [env('BASE_URL'), default('/'), 
      describe('Base URL of the server, all absolute links are prefixed with this address')]).
 
+:- register_cli_command('server', server_command, 
+    [
+        describe('Starts the sever listening for http trafic'),
+        context(server:port, port),        
+        context(server:server_base_url, base_url)
+    ]).
 % all assets are served with http_reply_file/2
 user:file_search_path(assets, './assets').
 
 %%% PUBLIC PREDICATES_SECTION %%%%%%%%%%%%%%
+
 
 %! server is det
 %  Starts http server listening at the default port specified by the server:port settings. 
@@ -53,6 +61,8 @@ server(Port) :-
     http_server(dispatch, [port(Port)]).
 
 %%% PRIVATE PREDICATES_SECTION %%%%%%%%%%%%%%
+
+
 
 % dispatch(Request) :-
 %     openapi_dispatch(Request),
@@ -71,7 +81,8 @@ is_server_dead(Port) :-
     http_current_worker(Port, _ ), 
     ! .   
 
-
+server_command(_, _) :-
+    server_start_and_wait.
 
 %! server_start_and_wait is det
 %  Starts the http server listening at the port specified by the server:port setting and wait

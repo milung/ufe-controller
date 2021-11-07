@@ -1,0 +1,9 @@
+kustomize
+profile-ui
+**/node_modules
+**/.bin
+**/.packages
+.git
+**/www
+**/dist
+**/loader

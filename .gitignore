@@ -1,2 +1,4 @@
-controller/www
-controller/.packages
+**/www
+**/.packages
+**/.bin
+

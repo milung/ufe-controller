@@ -2,7 +2,9 @@
     http_response/2,            % +Request:list, +Data
     http_response/3,            % +Request:list, +Data, +HdrExtra:list
     http_response/4,            % +Request:list, +Data, +HdrExtra:list, +Status
+    request_accept_languages/3, % +Request:list, -Languages:list(atom), +Options
     request_match_condition/4,  % +Request:list, ?CurrentTag:atom, ?LastModification:float, -WeakMatch:boolean
+    request_match_language/3,   % +Request:list, +Supported:list(atom), -Language:atom
     serve_assets/1              % +Request:list
     ]).
 %! <module> http_extra predicates
@@ -48,6 +50,41 @@ http_response(Request, Data, HdrExtra,  Code) :-
     !.
 http_response(_, Data, HdrExtra, Code) :-
     http_post_data(Data, current_output, [status(Code) | HdrExtra] ).
+
+%! request_accept_languages(+Request:list, -Languages:list(atom), +Options) is semidet
+%  Unifies list of `Languages` with sorted list of the languages specified in the `Request`
+%  `Accept-Language` header. The languages are sorted by quality attributes and normalized
+%  into lower case atoms with dash `-` being replaced by underscore. The user prefered language
+%  if specified in the query variable `lang` gets the highest preference and is then the foirst 
+%   member of the `Languages` list (after normalizing the language code).
+%
+% `Options` may be one of 
+%  * `no_header(DefaultLanguage)` - specifies the default language if there is no `Accept-Language`
+%    header provided with the request. The default value is atom `'*'`. If set to atom `fail`
+%    then this predicate fails silently if header is not set. 
+%  * `wildcard_value(Wildcard)` - specifies value to use in case of the wildcard `*` symbol used 
+%    in the header. The default value is atom `'*'`.
+request_accept_languages(Request, [UserNorm | Languages], Options) :-
+    select(search(Queries), Request, RequestRest),
+    memberchk(lang=UserLang, Queries),
+    language_normalized(UserLang, UserNorm, Options),
+    request_accept_languages(RequestRest, Languages, Options),
+    !.
+ request_accept_languages(Request, Languages, Options) :-
+    memberchk(accept_language(AcceptLanguages), Request),
+    split_string(AcceptLanguages, ', ', ', ', Preferences),
+    maplist(language_preference(Options), UnsortedLanguages, Preferences),
+    sort(2, @>=, UnsortedLanguages, LanguageQualities),
+    pairs_keys(LanguageQualities, Languages),
+    !.
+ request_accept_languages(Request, [Language], Options) :-
+    \+   memberchk(accept_language(_), Request),
+    (   option(no_header(fail), Options)
+    ->  !, fail
+    ;   option(no_header(Default), Options, '*'),
+        language_normalized(Default, Language, Options)
+    ),
+    !.
 
 %! request_match_condition(+Request:list, ?CurrentTag:atom, ?LastModification:float, -WeakMatch:boolean) is det
 %  Succeeds if either the `CurrentTag` matches the tags provided in `If-None-Match` or in `If-Match` 
@@ -96,7 +133,18 @@ request_match_condition(Request, CurrentTag, _, Weak) :-
     !,
     LastModification >= TimeStamp.
  request_match_condition(_, _, _, false). % no condition on request, therefore match succeeds 
- 
+
+
+%! request_match_language(+Request:list, +Supported:list(atom), -Language:atom) is det
+%  Unifies the `Language` with one of the `Supported` languages that matches the `Request`-s 
+%  `Accept-Language` header, or with the first language in the `Supported` list if there is no 
+%  match. Each element of the `Supported` list must be downcased atom of the language code with 
+%  dash replaced by underscore, as for example  `en_us`, or `en`.
+request_match_language(Request, Supported, Language) :-
+    request_accept_languages(Request, Accepts, []), 
+    languages_supported_match(Accepts, Supported, Language),
+    !.
+
 %! serve_assets(+Request:list) is det
 %  checks for existence of the resource from Request's URI 
 %  and serves it to http server. Throws =|http_reply(not_found(Path)|= 
@@ -109,7 +157,6 @@ request_match_condition(Request, CurrentTag, _, Weak) :-
 %  try for existence of the files `/file.3456.jpg` and `/file.jpg` before responding with `404 Not found` reply.
 %  Together with the preset public caching and the one year expiration of assets, it allows for efficient control 
 %  of the internet caches.
-
 serve_assets( Request) :-
     option(path_info(Asset), Request),
     absolute_file_name(asset(Asset), Absolute, [access(read)]),
@@ -131,6 +178,46 @@ serve_assets( Request) :-
     throw(http_reply(not_found(Path))).
     
 %%% PRIVATE PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%
+lang_norm(Lang) -->
+    alpha_to_lower(C),
+    lang_norm_rest(Codes),
+    {   atom_codes(Lang, [C|Codes]) },
+    !.
+    
+lang_norm_rest([C|Codes]) -->
+    alpha_to_lower(C),
+    lang_norm_rest(Codes).
+ lang_norm_rest([0'_|Codes]) -->
+    (   [0'-]
+    ;   [0'_]),
+    lang_norm_rest(Codes).
+ lang_norm_rest([]) --> [].
+
+language_normalized('*', Wildcard, Options) :-
+    option(wildcard_value(Wildcard), Options, '*'),
+    !.
+ language_normalized(Text, Language, _) :-
+    string_codes(Text, Codes),
+    once(phrase(lang_norm(Language), Codes, _)).
+
+language_preference(Options, Lang-Quality, Text) :-
+    atom_string(Atom, Text),
+    atomic_list_concat([LangText, QualityAtom], ';', Atom),
+    atom_concat('q=', ValueText, QualityAtom),
+    atom_number(ValueText, Quality),
+    language_normalized(LangText, Lang, Options).
+language_preference( Options, Lang-0.0, "*") :-
+    language_normalized('*', Lang, Options).
+ language_preference( Options, Lang-1.0, Text) :-
+    atom_string(Atom, Text),
+    language_normalized(Atom, Lang, Options).
+
+languages_supported_match([], [Lang|_], Lang).
+ languages_supported_match([Lang|_], SystemLanguages, Lang) :-
+    memberchk(Lang, SystemLanguages),
+    !.
+ languages_supported_match([_|Preferrence], SystemLanguages, Lang) :-
+    languages_supported_match(Preferrence, SystemLanguages, Lang).
 
 tag_values_match(Tag, false) -->
     blanks, [0'"], Tag, [0'"].
@@ -146,3 +233,8 @@ tag_values_match(Tag, Weak) -->
     [0'"], string_without("\"", _), [0'"],
     blanks, (","; ";"; []),
     tag_values_match(Tag, Weak).
+
+
+ 
+
+    

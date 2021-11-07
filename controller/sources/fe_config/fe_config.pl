@@ -25,8 +25,10 @@
     config_cache/3, % Config:dict, Etag:atom, LastModifiet:float
     watcher_exit/1.
 
-:- initialization(start_fe_config_controller).
+
+:- initialization(start_fe_config_controller, program).
 :- at_halt(stop_fe_config_controller).
+
 
 :- multifile http_header:field_name//1.
 
@@ -44,7 +46,15 @@ serve_fe_config(Request) :-
     serve_fe_config(Request) :-
     config_cache(Config, Etag, LastModifiedStamp), 
     http_timestamp(LastModifiedStamp, LastModified),
-    http_response(Request, json(Config), [cache_control('public, max-age=3600'), etag(Etag), last_modified(LastModified)], ok).
+    http_response(
+        Request, 
+        json(Config), 
+        [
+            cache_control('public, max-age=3600'), 
+            etag(Etag), 
+            last_modified(LastModified)
+        ], 
+        ok).
 
 serve_webcomponents(Request) :-
     webcomponent_uri(Request, _, ETag),
@@ -54,15 +64,21 @@ serve_webcomponents(Request) :-
     ).
  serve_webcomponents(Request) :-
     webcomponent_uri(Request, Uri, Hash),
-    http_get(Uri, Bytes, [
+    request_pass_through_headers(Request, RequestHeaders),
+    http_get(
+        Uri, Bytes, 
+        [
             to(codes),
             input_encoding(octet),
             status_code(Status),
             header(content_type, ContentType),
             header(etag, EtagExt),
             header(last_modified, LastModifiedExt),
-            header(cache_control, CacheControlExt),
-            timeout(10)]),
+            header(cache_control, CacheControlExt), 
+            timeout(10) 
+            | RequestHeaders
+        ]
+    ),
     (   Status = 404
     ->  http_404([], Request)
     ;   between(500, 599, Status)
@@ -87,6 +103,14 @@ start_fe_config_controller :-
         fail
     ;   true
     ),
+    % initial state
+    get_time(Now),
+    assertz(config_cache(
+        _{ apps: [], preload:[] },
+        'Tk8gUkVTT1VSQ0VTIERFVEVDVEVEIFlFVA',
+        Now)
+    ),
+    % Observe Kubernetes API
     k8s_watch_resources_async(k8s_observer, 'fe.milung.eu', v1, webcomponents, Exit, [timeout(15)]),
     assertz(watcher_exit(Exit)).
 
@@ -133,6 +157,17 @@ k8s_observer(added, Resource) :-
 
 prolog:message(controller(already_started)) -->
     [ 'uFE Controller thread already running, stop it first'].
+
+pass_through(accept_language).
+pass_through(accept_charset).
+
+pass_through_match(HeaderValue, request_header(Header=Value) ) :-
+    HeaderValue =.. [ Header, Value],
+    pass_through(Header),
+    !.
+
+request_pass_through_headers(Request, Headers) :- 
+    convlist(pass_through_match, Request, Headers). 
 
 resource_config(Resource, In, Out) :-
         resource_config_app(Resource, In, Cfg),

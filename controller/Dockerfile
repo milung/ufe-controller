@@ -1,3 +1,4 @@
+
 FROM swipl AS saved-state
 COPY *.pl /build/
 COPY sources /build/sources/

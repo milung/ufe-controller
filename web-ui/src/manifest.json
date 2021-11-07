@@ -1,13 +1,13 @@
 {
-  "name": "Stencil Starter",
-  "short_name": "Stencil",
-  "start_url": "/",
+  "name": "{{app-title}}",
+  "short_name": "{{app-title}-short}",
+  "start_url": "{{base-href}}",
   "display": "standalone",
   "icons": [{
-    "src": "assets/icon/icon.png",
+    "src": "./assets/icon/icon.png",
     "sizes": "512x512",
     "type": "image/png"
   }],
-  "background_color": "#16161d",
-  "theme_color": "#16161d"
+  "background_color": "{{background-color}}",
+  "theme_color": "{{theme-color}}"
 }

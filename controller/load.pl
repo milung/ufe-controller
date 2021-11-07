@@ -1,5 +1,8 @@
 %%% Loads all source modules to be used on top level
 
+:-  prolog_load_context(directory, Dir), 
+    asserta(user:file_search_path(project, Dir)),
+    asserta(user:file_search_path(source, project(sources))).  
 
 %  Project load search paths
 :-  asserta(user:file_search_path(cliroot, project('.'))).
@@ -8,7 +11,7 @@
     (     
         retractall(file_search_path(cliroot, _)),  
         retractall(file_search_path(project, _)),
-        retractall(file_search_path(foreign, _)),
+        % retractall(file_search_path(foreign, _)),
         current_prolog_flag(executable, ExePath),
         atomic_list_concat(Segments, '\\', ExePath),
         atomic_list_concat(Segments, '/', PosixPath),        
@@ -22,7 +25,7 @@
         assert(user:file_search_path(project, cliroot('.')))
     ),
     restore_state).
-
+user:file_search_path(source, project(source)).
 user:file_search_path(asset, html(assets)).
 user:file_search_path(asset, html(modules)).
 user:file_search_path(html, www).
@@ -32,7 +35,7 @@ user:file_search_path(config, '.').
 user:file_search_path(config, './config').
 user:file_search_path(config, user_home('.document-structure')).
 user:file_search_path(config, cliroot(config)).
-user:file_search_path(foreign, cliroot(bin)).
+% user:file_search_path(foreign, cliroot(bin)).
 
 :- set_prolog_flag(encoding, utf8).
 
@@ -50,14 +53,18 @@ install_package(package(Name, _)) :-
     !.
  install_package(package(Name, Url)) :-
     absolute_file_name(project('.packages'), PackageDir),
-    pack_install(Name, [url(Url), package_directory(PackageDir), interactive(false)]).
+    pack_install(Name, [url(Url), package_directory(PackageDir), interactive(false), inquiry(false)]).
+
+install_packages(PackageDir) :-
+    make_directory_path(PackageDir),
+    read_file_to_terms(project('packages.pl'), Dependencies, []),
+    maplist(install_package, Dependencies).
 
 :-  absolute_file_name(project('.packages'), PackageDir),
     attach_packs(PackageDir),
-    make_directory_path(PackageDir),
-    read_file_to_terms(project('packages.pl'), Dependencies, []),
-    maplist(install_package, Dependencies),
+    install_packages(PackageDir),
     attach_packs(PackageDir).
+
 
 % debugging is enabled for info, warnig, and error levels 
 % - use debug and trace for more glanular levels
