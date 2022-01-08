@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ufe-controller
+spec:
+  template: 
+    spec:
+      containers:
+      - name: ufe-controller
+        
+        env:
+          - name: HTTP_CSP_HEADER
+            value: >
+              default-src 'self' 'unsafe-inline' https://fonts.googleapis.com/ https://fonts.gstatic.com/; 
+              font-src https://fonts.googleapis.com/ https://fonts.gstatic.com/;
+              script-src 'nonce-{NONCE_VALUE}';
+              image-src 'self' https://seccdn.libravatar.org;
+    

@@ -1,18 +1,6 @@
 {
 	"folders": [
 		{
-			"path": "."
-		},
-		{
-			"path": "..\\web-ui"
-		},
-		{
-			"path": "..\\examples\\profile-ui"
-		},
-		{
-			"path": "..\\kustomize"
-		},
-		{
 			"path": ".."
 		},
 		{
@@ -20,6 +8,15 @@
 		},
 		{
 			"path": "..\\..\\swipl-libs\\pl_mustache"
+		},
+		{
+			"path": "..\\..\\..\\predmet"
+		},
+		{
+			"path": "..\\..\\wac-stencil\\ambulance-list"
+		},
+		{
+			"path": "..\\..\\wac-stencil\\webcloud-gitops"
 		}
 	],
 	"settings": {}

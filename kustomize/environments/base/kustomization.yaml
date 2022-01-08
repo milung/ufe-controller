@@ -3,8 +3,6 @@ kind: Kustomization
 
 namespace: micro-fe-sample
 
-bases:
-- ../../base
 
 resources: 
-- webcomponents.yaml
+- ../../applications/ufe-controller/base

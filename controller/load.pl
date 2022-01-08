@@ -82,3 +82,4 @@ install_packages(PackageDir) :-
 :- use_module(source(http_extra/http_extra)).
 :- use_module(source(fe_config/fe_config)).
 :- use_module(source(http_extra/http_extra)).
+:- use_module(source(logging/logger)).

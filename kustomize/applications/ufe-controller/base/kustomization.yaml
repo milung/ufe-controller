@@ -3,7 +3,8 @@ kind: Kustomization
 
 resources:
 - crd.yaml
+- deployment.yaml
+- service.yaml
 
 commonLabels:
-  component: micro-fe
-
+  app: micro-fe

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-uic
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      pod: profile-uic
+  template: 
+    metadata:
+      labels: 
+        pod: profile-uic
+    spec:
+      containers:
+      - name: profile-uic
+        image: milung/profile-uic
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 80
+        resources:
+          requests:
+            memory: "32M"
+            cpu: "0.1"
+          limits:
+            memory: "320M"
+            cpu: "0.3"
+    

@@ -60,6 +60,7 @@ serve_webcomponents(Request) :-
     webcomponent_uri(Request, _, ETag),
     (   ETag \= []
     ->  \+ request_match_condition(Request, ETag, _, _),
+        
         throw(http_reply(not_modified, [cache_control('public, max-age=31536000, immutable'), etag(ETag)]))
     ).
  serve_webcomponents(Request) :-
@@ -94,12 +95,12 @@ serve_webcomponents(Request) :-
         ),
         http_response(Request, bytes(ContentType, Bytes), Headers, Status)
     ).
-
+ 
 %! start_fe_config_controller is det
 % Starts a thread that observes the web component for FE registrations at k8s API
 start_fe_config_controller :-
     (   watcher_exit(_)
-    ->  print_message(warning, controller(already_started)), 
+    ->  print_message(warning, ufe_controller(already_started)), 
         fail
     ;   true
     ),
@@ -112,6 +113,7 @@ start_fe_config_controller :-
     ),
     % Observe Kubernetes API
     k8s_watch_resources_async(k8s_observer, 'fe.milung.eu', v1, webcomponents, Exit, [timeout(15)]),
+    print_message(information, ufe_controller(started)), 
     assertz(watcher_exit(Exit)).
 
 %! stop_fe_config_controller is det
@@ -155,7 +157,9 @@ k8s_observer(added, Resource) :-
     prolog:error_message//1,
     prolog:message_context//1.
 
-prolog:message(controller(already_started)) -->
+prolog:message(ufe_controller(started)) -->
+    [ 'uFE Controller thread started watching webcomponent resources'].
+prolog:message(ufe_controller(already_started)) -->
     [ 'uFE Controller thread already running, stop it first'].
 
 pass_through(accept_language).

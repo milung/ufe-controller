@@ -26,12 +26,11 @@ export class AppRoot {
     else {
       let response = await fetch('/fe-config');
       AppRoot.webConfig  = await response.json();
-      forceUpdate(this);
     }
   }
 
-  connectedCallback(){
-    this.loadComponents();
+  async componentWillLoad() {
+    return await this.loadComponents();
   }
 
   app_render(app) {
@@ -94,14 +93,14 @@ export class AppRoot {
               <main>
 
               <Router.Switch>
-
-              <Route 
-                path="/"
-                render={ () => {
-                  return (<p>Welcome to the new stencil-router demo</p>);
-                }}
-              />
-              {apps.map(this.app_render)}
+                {apps.map(this.app_render)}
+                <Route 
+                  path="/"
+                  render={ () => {
+                    return (<p>Welcome to the new stencil-router demo</p>);
+                  }}
+                />
+              
 
               </Router.Switch>
       

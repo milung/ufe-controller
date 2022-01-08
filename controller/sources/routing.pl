@@ -13,6 +13,7 @@
 
 :- use_module(source(fe_config/fe_config)).
 :- use_module(source(http_extra/http_extra)).
+:- use_module(source(logging/logger)).
  
 :- multifile 
     user:file_search_path/2,
@@ -38,10 +39,7 @@
         titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US')]).
 :- context_variable(app_description, atom, [
     env('APPLICATION_DESCRIPTION'), 
-    default('Application shell for encapsulating micro-fron-ends'), 
-    describe(
-        'Description of the language fallback application for meta attributes, language specific \c
-        titles are also possible, e.g. APPLICATION_DESCRIPTION_EN_US')]).
+    default(titles are also possible, e.g. APPLICATION_DESCRIPTION_EN_US')]).
 :- context_variable(accepts_languages, list, [
     env('ACCEPTS_LANGUAGES'), 
     default(['en']), 
@@ -74,13 +72,13 @@
 
 % default rooting - adapt to project needs
 
-:- http_handler(root('fe-config'), serve_fe_config, [prefix]).
-:- http_handler(root('manifest.json'), serve_manifest, []).
-:- http_handler(root('assets'), serve_assets, [prefix]).
-:- http_handler(root(modules), serve_assets, [prefix]).
-:- http_handler(root('web-components'), serve_webcomponents, [prefix]). 
-:- http_handler(root('favicon.ico'), http_reply_file(asset('icon/favicon.ico'), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]), []).
-:- http_handler(root(.), serve_spa, [prefix]). 
+:- http_handler(root('fe-config'), logged_http(serve_fe_config), [prefix]).
+:- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
+:- http_handler(root('assets'), logged_http(serve_assets), [prefix]).
+:- http_handler(root(modules), logged_http(serve_assets), [prefix]).
+:- http_handler(root('web-components'), logged_http(serve_webcomponents), [prefix]). 
+:- http_handler(root('favicon.ico'), logged_http(http_reply_file(asset('icon/favicon.ico')), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]), []).
+:- http_handler(root(.), logged_http(serve_spa), [prefix]). 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -108,7 +106,7 @@ html_lang_variable(Language, _, EnvironmentName, Value) :-
 
 html_variables(
     Request, 
-    [   'bae-href'=BaseUrl, 
+    [   'base-href'=BaseUrl, 
         'background-color' = BckColor, 
         'theme-color' = ThemeColor, 
         language = Language, 
@@ -166,7 +164,6 @@ serve_spa( Request) :-
     context_variable_value(csp_header, Csp),
     get_nonce(Nonce),
     interpolate_string(Csp, CspNonce, ['NONCE_VALUE'=Nonce], []),
-    context_variable_value(csp_header, Csp),
     context_variable_value(accepts_languages, SupportedLangs),
     request_match_language(Request, SupportedLangs, Language),
     asset_by_language(html('index.html'), Language, Asset),

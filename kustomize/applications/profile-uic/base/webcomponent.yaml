@@ -1,0 +1,20 @@
+apiVersion: fe.milung.eu/v1
+kind: WebComponent
+metadata: 
+  name: profile-uic
+spec:   
+  module-uri: http://profile-uic/profile-uic.js
+  navigation:
+    - attributes:
+        - name: identity
+          value: milan.kvetko@gmail.com
+        - name: user-name
+          value: Milan Kvetko
+        - name: avatar
+          value: true
+      element: ufe-account-app
+      path: my-account
+      title: Môj účet
+  preload: false
+  proxy: true
+  hash-suffix: v1alpha1
