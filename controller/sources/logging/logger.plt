@@ -1,5 +1,5 @@
 :- begin_tests(logger).
-:- use_module(source(logger)).
+:- use_module(source(logging/logger)).
 
 % test(predicate, []) :-
 %     logger:predicate(a, a).

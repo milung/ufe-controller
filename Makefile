@@ -12,6 +12,12 @@ BUILD_DIR=.build
 CONTROLLER_TAG=milung/ufe-controller
 PROFILES_UIC_TAG=milung/profile-uic
 
+# SOURCES
+
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+WEB_SOURCES=$(call rwildcard, web-ui/src, *)
+CONTROLLER_SOURCES=$(call rwildcard, controller, *.pl)
+
 
 ##########  GOALS #####################
 
@@ -21,9 +27,17 @@ controller.push: controller.image
 	docker push $(CONTROLLER_TAG)
 	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/controller.push
 
-controller.image:  Dockerfile $(wildcard controller/sources/**/*.pl) $(wildcard controller/*.pl) $(wildcard controller/.packages/**/prolog/*.pl) | $(BUILD_DIR)
-	docker build -t $(CONTROLLER_TAG) .
+controller.image:  Dockerfile $(CONTROLLER_SOURCES) $(WEB_SOURCES) | $(BUILD_DIR)
+	docker build -t $(CONTROLLER_TAG) --build-arg BUILD_ENV=build.prod .
 	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/controller.image
+
+dev.controller.push: dev.controller.image
+	docker push $(CONTROLLER_TAG):dev
+	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/dev.controller.push
+
+dev.controller.image: Dockerfile $(CONTROLLER_SOURCES) $(WEB_SOURCES) | $(BUILD_DIR)
+	docker build -t $(CONTROLLER_TAG):dev --build-arg BUILD_ENV=build.dev .
+	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG):dev > .build/dev.controller.image
 
 profiles.push: profiles.image
 	docker push $(PROFILES_UIC_TAG)

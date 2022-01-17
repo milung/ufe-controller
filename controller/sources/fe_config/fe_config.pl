@@ -17,6 +17,7 @@
 :- use_module(library(md5)).
 :- use_module(library(memfile)).
 :- use_module(library(uri)).
+:- use_module(library(execution_context)).
 
 :- use_module(source(http_extra/http_extra)).
 
@@ -34,6 +35,11 @@
 
 http_header:field_name(etag) --> "ETag".
 
+:- context_variable(namespaces, list(atom), [
+    env('OBSERVE_NAMESPACES'), default('*'),
+    describe('Comma separated list of namespaces in which to look for webcomponents to be served by this instance')
+    ]).
+
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %! serve_fe_config(+Request) is det
@@ -43,7 +49,7 @@ serve_fe_config(Request) :-
     \+ request_match_condition(Request, Etag, LastModifiedStamp, _),
     http_timestamp(LastModifiedStamp, LastModified),  
     throw(http_reply(not_modified,[cache_control('public, max-age=3600'), etag(Etag), last_modified(LastModified)])).
-    serve_fe_config(Request) :-
+ serve_fe_config(Request) :-
     config_cache(Config, Etag, LastModifiedStamp), 
     http_timestamp(LastModifiedStamp, LastModified),
     http_response(
@@ -179,7 +185,9 @@ resource_config(Resource, In, Out) :-
 
 resource_config_app(Resource, CfgIn, CfgOut) :-
     Navigations = Resource.get(spec).get(navigation),
-    foldl(resource_navigation_config(Resource), Navigations, CfgIn, CfgOut ).
+    foldl(resource_navigation_config(Resource), Navigations, CfgIn, CfgOut ),
+    !.
+resource_config_app(_, Cfg, Cfg).
 
 resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     resource_moduleUri( Resource, ModuleUri),
@@ -208,7 +216,7 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
 
 resource_config_preload(Resource, CfgIn, CfgOut) :-
     (   true = Resource.spec.get(preload)
-    ->  atomic_list_concat(['/web-components/',  Resource.metadata.name, '.jsm'], ModuleUri),
+    ->  resource_moduleUri( Resource, ModuleUri),
         CfgOut = CfgIn.put(preload, [ModuleUri | CfgIn.preload ])
     ;   CfgOut = CfgIn
     ).
@@ -219,7 +227,10 @@ resource_moduleUri(Resource, ModuleUri) :-
     ->  atomic_list_concat(['.', Suffix0], Suffix)
     ;   Suffix = ''
     ),
-    atomic_list_concat(['/web-components/',  Resource.metadata.name, '/',  Resource.metadata.name, Suffix, '.jsm'], ModuleUri)
+    atomic_list_concat([
+        '/web-components/',  
+        Resource.metadata.name, '/',  
+        Resource.metadata.name, Suffix, '.jsm'], ModuleUri)
 ;   atom_string( ModuleUri, Resource.spec.'module-uri')
 ).
 

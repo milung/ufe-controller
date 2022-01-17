@@ -39,7 +39,7 @@
         titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US')]).
 :- context_variable(app_description, atom, [
     env('APPLICATION_DESCRIPTION'), 
-    default(titles are also possible, e.g. APPLICATION_DESCRIPTION_EN_US')]).
+    default('titles are also possible, e.g. APPLICATION_DESCRIPTION_EN_US')]).
 :- context_variable(accepts_languages, list, [
     env('ACCEPTS_LANGUAGES'), 
     default(['en']), 

@@ -1,10 +1,8 @@
-import { Component, forceUpdate, h, Element } from '@stencil/core';
+import { Component, h, Element } from '@stencil/core';
 import '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
 import '@material/mwc-drawer';
 import { createRouter, Route, href } from 'stencil-router-v2';
-
-
 
 const Router = createRouter();
 
@@ -26,6 +24,8 @@ export class AppRoot {
     else {
       let response = await fetch('/fe-config');
       AppRoot.webConfig  = await response.json();
+      let preloads = AppRoot.webConfig != null ? AppRoot.webConfig.preload : [];
+      preloads.forEach( url => import(url))
     }
   }
 
@@ -41,7 +41,7 @@ export class AppRoot {
     content += `></${app.element}>`;
     return (
       <Route 
-        path={'/' + app.path}
+        path={new RegExp('(^\/' + app.path + '\/|^\/' + app.path + '$)')}
         render={ () => {
           let url = app.load_url;
           import(url);          
@@ -51,7 +51,7 @@ export class AppRoot {
   }
 
   componentDidLoad() {
-    const drawer = this.element.shadowRoot.querySelectorAll('mwc-drawer')[0];
+    const drawer = this.element.shadowRoot.querySelectorAll('mwc-drawer')[0] as any;
     if (drawer) {
         const container = drawer.parentNode;
         container.addEventListener('MDCTopAppBar:nav', () => {
@@ -61,9 +61,9 @@ export class AppRoot {
   }
 
   render() {
-    let title = 'App Shell';
+    let title = document.title;
     let apps = AppRoot.webConfig != null ? AppRoot.webConfig.apps : [];
-    return (
+    return (        
         <mwc-drawer hasHeader type="dismissible" open>
           <span slot="title">{title}</span>
           {/* <span slot="subtitle">subtitle</span> */}
@@ -72,7 +72,7 @@ export class AppRoot {
               { apps.map( app => 
                 <li>
                   <div class='app-title'>
-                    <a {...href(app.path)}>{app.title}</a>
+                    <a {...href(app.path, Router)}>{app.title}</a>
                   </div> 
                   { apps.details
                     ? <div class='app-details'>{app.details}</div>

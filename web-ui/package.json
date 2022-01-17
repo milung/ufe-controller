@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "description": "Application Shell for web components",
   "scripts": {
-    "build": "stencil build --dev",
+    "build.dev": "stencil build --dev",
     "build.prod": "stencil build --prod",
     "start": "stencil build --dev --watch --serve",
     "test": "stencil test --spec --e2e",

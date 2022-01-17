@@ -1,4 +1,7 @@
+
+#############################################
 ####  Build webui distribution ##############
+#############################################
 FROM node:latest AS webui
 
 RUN mkdir /app
@@ -8,11 +11,14 @@ COPY web-ui/package.json .
 RUN npm install 
 
 COPY web-ui .
-RUN ls
 
-RUN npm run build.prod
+ARG BUILD_ENV=build.prod
 
-####  build qsave state 
+RUN npm run $BUILD_ENV
+
+##########################################
+####  build qsave state ##################
+##########################################
 FROM swipl AS saved-state
 
 ENV http_port 80
@@ -33,11 +39,12 @@ COPY controller/sources /build/sources/
 
 RUN swipl -o bootfile -c run.pl
 
-#### TARGET controller Image
+#############################################
+#### TARGET controller Image ################
+#############################################
 FROM swipl
 
 WORKDIR /app
-
 
 COPY --from=saved-state /build/bootfile /app/bootfile
 COPY --from=webui /controller/www /app/www
