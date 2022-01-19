@@ -44,6 +44,8 @@ RUN swipl -o bootfile -c run.pl
 #############################################
 FROM swipl
 
+LABEL maintainer="Milan Unger <milan.kvetko@gmail.com>"
+
 WORKDIR /app
 
 COPY --from=saved-state /build/bootfile /app/bootfile

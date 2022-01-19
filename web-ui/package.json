@@ -20,9 +20,13 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@stencil/core": "^2.10.0",
+    "@maicol07/mwc-card": "^0.25.3",
+    "@material/mwc-button": "^0.25.3",
     "@material/mwc-drawer": "^0.25.2",
+    "@material/mwc-icon": "^0.25.3",
     "@material/mwc-icon-button": "^0.25.2",
-    "@material/mwc-top-app-bar-fixed": "^0.25.2"
+    "@material/mwc-list": "^0.25.3",
+    "@material/mwc-top-app-bar-fixed": "^0.25.2",
+    "@stencil/core": "^2.10.0"
   }
 }

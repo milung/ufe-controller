@@ -48,6 +48,45 @@ spec:
                     to a new unique value. 
                   type: string
 
+                contextElements: 
+                  description: |
+                    Components that can be displayed in special context, e.g. `ufe-app-shell` for top level
+                    application shell, `my-menu-item` for the components to display in the custom menu, etc.
+                  type: array
+                  items: 
+                    type: object
+                    required: 
+                    - contextNames
+                    - element
+                    properties:
+                      contextNames:
+                        details: List of context names in which this element is intended to shown
+                        type: array
+                        items: 
+                          type: string
+                      element:
+                        details: The HTML element tag name to use when navigated to the specific path
+                        type: string
+                        example: my-element-name
+                      attributes: 
+                        description: |
+                          A list of key-value pairs to assign specific attributes to the element. The `name` is
+                          used as the attribute name. The `value` can be any valid json type. 
+                        type: array
+                        items: 
+                          type: object
+                          required: 
+                            - name
+                            - value
+                          properties: 
+                            name: 
+                              type: string
+                            value: 
+                              x-kubernetes-preserve-unknown-fields: true
+                      roles:
+                        type: array
+                        items: 
+                          type: string
                 navigation:
                   description: |
                     Components with the navigation specification may be used as sub-paths
@@ -56,6 +95,7 @@ spec:
                   type: array
                   items: 
                     type: object
+
                     required: 
                       - path
                       - title

@@ -5,12 +5,17 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { Router } from "stencil-router-v2";
 export namespace Components {
     interface AppHome {
     }
     interface AppProfile {
     }
-    interface AppRoot {
+    interface UfeApplicationsList {
+        "router": Router;
+        "selector": string | {[label:string]: string};
+    }
+    interface UfeDefaultShell {
     }
 }
 declare global {
@@ -26,16 +31,23 @@ declare global {
         prototype: HTMLAppProfileElement;
         new (): HTMLAppProfileElement;
     };
-    interface HTMLAppRootElement extends Components.AppRoot, HTMLStencilElement {
+    interface HTMLUfeApplicationsListElement extends Components.UfeApplicationsList, HTMLStencilElement {
     }
-    var HTMLAppRootElement: {
-        prototype: HTMLAppRootElement;
-        new (): HTMLAppRootElement;
+    var HTMLUfeApplicationsListElement: {
+        prototype: HTMLUfeApplicationsListElement;
+        new (): HTMLUfeApplicationsListElement;
+    };
+    interface HTMLUfeDefaultShellElement extends Components.UfeDefaultShell, HTMLStencilElement {
+    }
+    var HTMLUfeDefaultShellElement: {
+        prototype: HTMLUfeDefaultShellElement;
+        new (): HTMLUfeDefaultShellElement;
     };
     interface HTMLElementTagNameMap {
         "app-home": HTMLAppHomeElement;
         "app-profile": HTMLAppProfileElement;
-        "app-root": HTMLAppRootElement;
+        "ufe-applications-list": HTMLUfeApplicationsListElement;
+        "ufe-default-shell": HTMLUfeDefaultShellElement;
     }
 }
 declare namespace LocalJSX {
@@ -43,12 +55,17 @@ declare namespace LocalJSX {
     }
     interface AppProfile {
     }
-    interface AppRoot {
+    interface UfeApplicationsList {
+        "router"?: Router;
+        "selector"?: string | {[label:string]: string};
+    }
+    interface UfeDefaultShell {
     }
     interface IntrinsicElements {
         "app-home": AppHome;
         "app-profile": AppProfile;
-        "app-root": AppRoot;
+        "ufe-applications-list": UfeApplicationsList;
+        "ufe-default-shell": UfeDefaultShell;
     }
 }
 export { LocalJSX as JSX };
@@ -57,7 +74,8 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "app-home": LocalJSX.AppHome & JSXBase.HTMLAttributes<HTMLAppHomeElement>;
             "app-profile": LocalJSX.AppProfile & JSXBase.HTMLAttributes<HTMLAppProfileElement>;
-            "app-root": LocalJSX.AppRoot & JSXBase.HTMLAttributes<HTMLAppRootElement>;
+            "ufe-applications-list": LocalJSX.UfeApplicationsList & JSXBase.HTMLAttributes<HTMLUfeApplicationsListElement>;
+            "ufe-default-shell": LocalJSX.UfeDefaultShell & JSXBase.HTMLAttributes<HTMLUfeDefaultShellElement>;
         }
     }
 }

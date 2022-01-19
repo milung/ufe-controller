@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        ".build": true,
+        "**/.bin": true,
+        "**/node_modules": true
+    }
+}

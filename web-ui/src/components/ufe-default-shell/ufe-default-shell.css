@@ -1,0 +1,21 @@
+:host {
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #fafafa;
+  --mdc-drawer-width: 256px
+}
+
+
+mwc-drawer[open] {
+  --mdc-top-app-bar-width: calc(100% - var(--mdc-drawer-width));
+}
+
+h1 {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #fff;
+  padding: 0 12px;
+}

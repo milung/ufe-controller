@@ -18,7 +18,7 @@
 :- multifile 
     user:file_search_path/2,
     http:status_page/3,
-    http:location/3.
+    http:location/3. 
 
 :- dynamic   
     http:location/3.
@@ -62,14 +62,23 @@
     env('HTTP_CSP_HEADER'), 
     default(
         'default-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
-         font-src https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
+         font-src ''self'' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
          script-src ''nonce-{NONCE_VALUE}''; '), 
     describe(
         'Content Security Policy header directives for serving \c
          the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
          automatically replaced by the random nonce text used to \c
          augment `<script>` elements in the html file.')]).
-
+:- context_variable(app_shell_context, atom, [
+    env('APPLICATION_SHELL_CONTEXT'), 
+    default('application-shell'), 
+    describe(
+        'context of the dynamic web component that is used to retrieve the application shell - used to build top-level element in the page body')]).
+:- context_variable(webcomponents_selector, atom, [
+    env('WEBCOMPONENTS_SELECTOR'), 
+    default(''), 
+    describe(
+        'comma separate list of key-value pairs, used to filter WebComponent resources with coresponding filters')]).
 % default rooting - adapt to project needs
 
 :- http_handler(root('fe-config'), logged_http(serve_fe_config), [prefix]).
@@ -112,13 +121,17 @@ html_variables(
         language = Language, 
         'app-title' = Title, 
         'app-title-short' = ShortTitle, 
-        description=Description
+        description=Description,
+        'ufe-shell-context'=ShellContext,
+        'ufe-selector'=Selector
     ]
 ) :-
     context_variable_value(server:server_base_url, BaseUrl),
     context_variable_value(background_color, BckColor),
     context_variable_value(theme_color, ThemeColor), 
     context_variable_value(accepts_languages, SupportedLangs),
+    context_variable_value(webcomponents_selector, Selector),
+    context_variable_value(app_shell_context, ShellContext),
     request_match_language(Request, SupportedLangs, Language), 
     html_lang_variable(Language, app_title, 'APPLICATION_TITLE', Title),
     html_lang_variable(Language, app_title_short, 'APPLICATION_TITLE_SHORT', ShortTitle),

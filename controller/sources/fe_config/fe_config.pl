@@ -134,7 +134,7 @@ fe_config_update :-
         Resource, 
         k8s(_, _, Resource),
         Resources ),
-    foldl(resource_config, Resources, _{ apps: [], preload:[] }, Config),
+    foldl(resource_config, Resources, _{ apps: [], preload:[], contexts: [] }, Config),
     atom_json_dict(Text, Config, [as(atom)]),
     md5_hash(Text, Etag, []),
     transaction(
@@ -180,14 +180,47 @@ request_pass_through_headers(Request, Headers) :-
     convlist(pass_through_match, Request, Headers). 
 
 resource_config(Resource, In, Out) :-
-        resource_config_app(Resource, In, Cfg),
-        resource_config_preload(Resource, Cfg, Out).
+        resource_config_app(Resource, In, Cfg0),
+        resource_config_preload(Resource, Cfg0, Cfg1),
+        resource_config_ctx(Resource, Cfg1, Out).
 
 resource_config_app(Resource, CfgIn, CfgOut) :-
     Navigations = Resource.get(spec).get(navigation),
     foldl(resource_navigation_config(Resource), Navigations, CfgIn, CfgOut ),
     !.
 resource_config_app(_, Cfg, Cfg).
+
+resource_config_ctx(Resource, CfgIn, CfgOut) :-
+    Contexts = Resource.get(spec).get(contexts),
+    foldl(resource_context_config(Resource), Contexts, CfgIn, CfgOut ),
+    !.
+resource_config_ctx(_, Cfg, Cfg).
+
+resource_context_config(Resource, Context, CfgIn, CfgOut ) :-
+    resource_moduleUri( Resource, ModuleUri),
+    (   RolesList = Context.get(roles)
+    ->  true
+    ;   RolesList = ['*']
+    ),
+    (   Labels = Resource.metadata.get(labels)
+    ->  true
+    ;   Labels = []),
+    (   ContextNames = Context.get(contextNames)
+    ->  true
+    ;   ContextNames = []),
+    (   Attributes = Context.get(attributes)
+    ->  true
+    ;   Attributes = [] ),
+    Ctx = _{
+        contextNames: ContextNames,
+        element: Context.element,
+        load_url: ModuleUri, 
+        roles: RolesList, 
+        labels: Labels,
+        attributes: Attributes
+    },
+    CfgOut = CfgIn.put(contexts, [Ctx | CfgIn.contexts ]),
+    !.
 
 resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     resource_moduleUri( Resource, ModuleUri),
@@ -201,8 +234,13 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     (   Attributes = Navigation.get(attributes)
     ->  true
     ;   Attributes = [] ),
+    (   Details = Navigation.get(details)
+    ->  true
+    ;   Details = ''
+    ),
     App = _{
         title: Navigation.title,
+        details: Details,
         path: Navigation.path,
         element: Navigation.element,
         load_url: ModuleUri, 
@@ -212,7 +250,6 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     },
     CfgOut = CfgIn.put(apps, [App | CfgIn.apps ]),
     !. 
-
 
 resource_config_preload(Resource, CfgIn, CfgOut) :-
     (   true = Resource.spec.get(preload)

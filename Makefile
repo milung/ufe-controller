@@ -1,4 +1,6 @@
 ############ PRESETS ##################
+# VERSION INFORMATION
+VERSION=0.1
 
 # DEPLOYMENT
 DEPLOY_ENVIRONMENT=sample
@@ -15,7 +17,7 @@ PROFILES_UIC_TAG=milung/profile-uic
 # SOURCES
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
-WEB_SOURCES=$(call rwildcard, web-ui/src, *)
+WEB_SOURCES=$(call rwildcard, web-ui/src, *) web-ui/package.json web-ui/stencil.config.ts
 CONTROLLER_SOURCES=$(call rwildcard, controller, *.pl)
 
 
@@ -28,7 +30,13 @@ controller.push: controller.image
 	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/controller.push
 
 controller.image:  Dockerfile $(CONTROLLER_SOURCES) $(WEB_SOURCES) | $(BUILD_DIR)
-	docker build -t $(CONTROLLER_TAG) --build-arg BUILD_ENV=build.prod .
+	docker build \
+		-t $(CONTROLLER_TAG) \
+		--build-arg BUILD_ENV=build.prod \
+		--label "version=$(VERSION)"  \
+		--label "build-mode=production"  \
+		--label "build-timestamp=$(TIMESTAMP)" \
+		.
 	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/controller.image
 
 dev.controller.push: dev.controller.image
@@ -69,7 +77,9 @@ POWERSHELL = pwsh -noprofile -command
 
 
 ifeq ($(OS),Windows_NT)
- MAKE_PATH = $(POWERSHELL)  $$null = new-item -ItemType "directory" -Force -Path
+ MAKE_PATH = $(POWERSHELL)  $$null = new-item -ItemType "directory" -Force -Path)
+ TIMESTAMP=  $(shell $(POWERSHELL) "Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%SZ'" )
 else
- MAKE_PATH = mkdir -p 	 
+ MAKE_PATH = mkdir -p 
+ TIMESTAMP = $(shell date --iso=seconds)
 endif
