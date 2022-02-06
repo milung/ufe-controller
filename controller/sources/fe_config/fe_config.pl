@@ -266,6 +266,7 @@ resource_moduleUri(Resource, ModuleUri) :-
     ),
     atomic_list_concat([
         '/web-components/',  
+        Resource.metadata.namespace, '/',
         Resource.metadata.name, '/',  
         Resource.metadata.name, Suffix, '.jsm'], ModuleUri)
 ;   atom_string( ModuleUri, Resource.spec.'module-uri')
@@ -273,8 +274,8 @@ resource_moduleUri(Resource, ModuleUri) :-
 
 webcomponent_uri(Request, Uri, Hash) :-
     option(path_info(Path), Request),
-    atomic_list_concat(['',Component,_], '/', Path),
-    k8s(_, Component, Resource),
+    atomic_list_concat(['',Namespace, Component,_], '/', Path),
+    k8s(Namespace, Component, Resource),
     (   Hash = Resource.spec.get('hash-suffix') 
     ->  true 
     ;   Hash = []
@@ -285,8 +286,8 @@ webcomponent_uri(Request, Uri, Hash) :-
     !.
  webcomponent_uri(Request, Uri, []) :-
   option(path_info(Path), Request),
-    atomic_list_concat(['',Component|SubPath], '/', Path),
-    k8s(_, Component, Resource),
+    atomic_list_concat(['',Namespace, Component|SubPath], '/', Path),
+    k8s(Namespace, Component, Resource),
     ModuleUri = Resource.spec.'module-uri',    
     atomic_list_concat(SubPath, '/', Relative),
     uri_resolve(Relative, ModuleUri, Uri),

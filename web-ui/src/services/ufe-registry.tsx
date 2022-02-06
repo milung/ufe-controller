@@ -103,6 +103,7 @@ class UfeRegistryImpl implements UfeRegistry{
     }
 
     private matchSelector<T extends UfeElement>(selector: string | { [name: string]: string} | undefined, elements: T[]): T[]  {
+        if( elements === undefined  || elements === null || elements === []) return [];
         const metas =  document.getElementsByTagName('meta');
         let normalizedSelector: { [name: string]: string};
         // normalize selector

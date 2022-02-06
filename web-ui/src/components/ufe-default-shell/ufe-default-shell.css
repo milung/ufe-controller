@@ -1,13 +1,19 @@
 :host {
+  --mdc-theme-primary: 	var(--ufe-theme-primary,#1976d2);
+  --mdc-theme-secondary: var(--ufe-theme-secondary, #d3e057);
+  --mdc-theme-surface: var(--ufe-theme-surface, #fff);
+  --mdc-theme-background: var(--ufe-theme-background, #fafafa);
+  --mdc-drawer-width: var(--ufe-drawer-width, 256px);
+}
+
+:host {
   position: absolute;
   bottom: 0;
   top: 0;
   left: 0;
   right: 0;
-  background: #fafafa;
-  --mdc-drawer-width: 256px
+  background: var(---mdc-theme-background);
 }
-
 
 mwc-drawer[open] {
   --mdc-top-app-bar-width: calc(100% - var(--mdc-drawer-width));

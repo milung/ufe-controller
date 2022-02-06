@@ -17,6 +17,9 @@
 		},
 		{
 			"path": "..\\..\\wac-stencil\\webcloud-gitops"
+		},
+		{
+			"path": "..\\..\\radio-webc"
 		}
 	],
 	"settings": {}
