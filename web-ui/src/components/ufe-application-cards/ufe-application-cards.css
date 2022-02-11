@@ -11,11 +11,14 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 0.3rem
+  margin: 0.3rem
 }
 .card-wrapper {
   padding: 16px;
   width: 20rem;
+  display: flex;
+  flex-flow: column;
+  height: 100%;
 }
 
 .title {
@@ -30,7 +33,7 @@
   text-transform: inherit;
 }
 
-.details {
+.text {
   font-size: .875rem;
   line-height: 1.25rem;
   font-weight: 400;
@@ -40,8 +43,22 @@
   opacity: .6;
 }
 
+.card-icon {
+  width: 44px;
+  height: 44px;
+  margin-right: 20px;
+  margin-bottom: 16px;
+  float: left;
+  border-radius: 50%;
+  background-color: #eee;
+}
+
 .actions {
   display: flex;
   flex-flow: row-reverse;
   padding-top: 2rem;
+}
+
+.fill-1 {
+  flex: 1;
 }

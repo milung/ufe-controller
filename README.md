@@ -24,7 +24,7 @@ kubectl port-forward service/ufe-controller 8080:80
 
 and navigating the browser to [http://localhost:8080]. You should see an empty application shall waiting for some `WebComponent`-s being deployed to the cluster.
 
-A sample deployment with a demo web application is available in the folder [./example]
+A sample deployment with a demo web application is available in the folder [./examples/kustomize]
 
 ## Usage
 
@@ -53,6 +53,10 @@ spec:
                              # to refresh cache, and avoids issues with cached versus actual version
 ```
 
-## Configuration
+## Server Configuration
+
+TBD. 
+
+## Application Shell Configuration
 
 TBD. 

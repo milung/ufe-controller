@@ -13,6 +13,7 @@ export interface UfeWebApp extends UfeElement{
     details: string;
     path: string;
     priority: number;
+    icon?: string
 }
 
 export interface UfeContext extends UfeElement {
@@ -88,7 +89,7 @@ class UfeRegistryImpl implements UfeRegistry{
     navigableApps(selector: { [name: string]: string} = {} ): UfeWebApp[]  {
         return this
             .matchSelector(selector, UfeRegistryImpl.webConfig.apps)
-            .sort( (a, b) => a.priority  - b.priority);
+            .sort( (a, b) => b.priority  - a.priority);
     }
 
     contextElements(context: string, selector: { [name: string]: string} = {}): UfeContext[]  {

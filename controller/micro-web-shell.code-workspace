@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "..\\..\\wac-stencil\\ambulance-webapi"
+		},
+		{
+			"path": "..\\..\\swipl-libs\\execution-context"
 		}
 	],
 	"settings": {}

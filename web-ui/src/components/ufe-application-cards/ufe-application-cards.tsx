@@ -31,8 +31,15 @@ export class UfeApplicationCards {
       <Host>
         {apps.map(app => 
         <div class="card"><div class="card-wrapper">
-          <div class="title">{app.title}</div>
-          <div class="details">{app.details}</div>
+          <div class="title-section">
+            { app.icon?.length
+            ? <img src={app.icon} class="card-icon"></img>
+            : <noop></noop>
+            }
+            <div class="title">{app.title}</div>
+          </div>
+          <div class="text">{app.details}</div>
+          <div class="fill-1"></div>
           <div class="actions">
             <mwc-button label="Otvoriť" {...this.ufeRegistry.href(app.path, this.router)}/>
           </div></div>

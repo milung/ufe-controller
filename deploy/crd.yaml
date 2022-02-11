@@ -128,7 +128,7 @@ spec:
                         type: number
                         default: 0
                       details: 
-                        details: |
+                        description: |
                           Additional description to explain to the user the purpose of the component. It is shown 
                           in addition to the title in the navigation lists
                         type: string
@@ -153,6 +153,9 @@ spec:
                               x-kubernetes-preserve-unknown-fields: true
                       icon: 
                         type: object
+                        required:
+                        - mime
+                        - data
                         description: |
                           The optional icon to associate with the navigable component. SVG preferred. 
                         properties: 

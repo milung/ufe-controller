@@ -25,69 +25,72 @@
 
 
 %%%%%%%%%   CONTEXT   VARIABLES %%%%%%%%%%%%%%%%%%%%
-:- context_variable(app_title, atom, [
+ :- context_variable(app_title, atom, [
     env('APPLICATION_TITLE'), 
     default('Application shell'), 
     describe(
         'Language fallback application title, language specific \c
         titles are also possible, e.g. APPLICATION_TITLE_EN_US')]).
-:- context_variable(app_title_short, atom, [
-    env('APPLICATION_TITLE_SHORT'), 
-    default('Shell'), 
-    describe(
-        'Short version of the language fallback application title, language specific \c
-        titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US')]).
-:- context_variable(app_description, atom, [
-    env('APPLICATION_DESCRIPTION'), 
-    default('titles are also possible, e.g. APPLICATION_DESCRIPTION_EN_US')]).
-:- context_variable(accepts_languages, list, [
-    env('ACCEPTS_LANGUAGES'), 
-    default(['en']), 
-    describe(
-        'List of semicolon, or comma separated language codes that are supported. \c
-         If there is match between `Accept-Language` header and this list, then language \c
-         of html element is set to such language. In case there is no match then html language \c
-         is set to the first language in this list.')]).
-:- context_variable(background_color, atom, [
-    env('MANIFEST_BACKGROUND_COLOR'), 
-    default('#16161d'), 
-    describe(
-        'background color to use in the `manifest.json`')]).
-:- context_variable(theme_color, atom, [
-    env('MANIFEST_BACKGROUND_COLOR'), 
-    default('#16161d'), 
-    describe(
-        'theme color to use in the `manifest.json`')]).
-:- context_variable(csp_header, atom, [
-    env('HTTP_CSP_HEADER'), 
-    default(
-        'default-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
-         font-src ''self'' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
-         script-src ''nonce-{NONCE_VALUE}''; '), 
-    describe(
-        'Content Security Policy header directives for serving \c
-         the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
-         automatically replaced by the random nonce text used to \c
-         augment `<script>` elements in the html file.')]).
-:- context_variable(app_shell_context, atom, [
-    env('APPLICATION_SHELL_CONTEXT'), 
-    default('application-shell'), 
-    describe(
-        'context of the dynamic web component that is used to retrieve the application shell - used to build top-level element in the page body')]).
-:- context_variable(webcomponents_selector, atom, [
-    env('WEBCOMPONENTS_SELECTOR'), 
-    default(''), 
-    describe(
-        'comma separate list of key-value pairs, used to filter WebComponent resources with coresponding filters')]).
-% default rooting - adapt to project needs
+ :- context_variable(app_title_short, atom, [
+     env('APPLICATION_TITLE_SHORT'), 
+     default('Shell'), 
+     describe(
+         'Short version of the language fallback application title, language specific \c
+         titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US')]).
+ :- context_variable(app_description, atom, [
+     env('APPLICATION_DESCRIPTION'), 
+     default('titles are also possible, e.g. APPLICATION_DESCRIPTION_EN_US')]).
+ :- context_variable(accepts_languages, list, [
+     env('ACCEPTS_LANGUAGES'), 
+     default(['en']), 
+     describe(
+         'List of semicolon, or comma separated language codes that are supported. \c
+          If there is match between `Accept-Language` header and this list, then language \c
+          of html element is set to such language. In case there is no match then html language \c
+          is set to the first language in this list.')]).
+ :- context_variable(background_color, atom, [
+     env('MANIFEST_BACKGROUND_COLOR'), 
+     default('#16161d'), 
+     describe(
+         'background color to use in the `manifest.json`')]).
+ :- context_variable(theme_color, atom, [
+     env('MANIFEST_BACKGROUND_COLOR'), 
+     default('#16161d'), 
+     describe(
+         'theme color to use in the `manifest.json`')]).
+ :- context_variable(csp_header, atom, [
+     env('HTTP_CSP_HEADER'), 
+     default(
+         'default-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
+          font-src ''self'' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
+          script-src ''nonce-{NONCE_VALUE}''; '), 
+     describe(
+         'Content Security Policy header directives for serving \c
+          the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
+          automatically replaced by the random nonce text used to \c
+          augment `<script>` elements in the html file.')]).
+ :- context_variable(app_shell_context, atom, [
+     env('APPLICATION_SHELL_CONTEXT'), 
+     default('application-shell'), 
+     describe(
+         'context of the dynamic web component that is used to retrieve the application shell - used to build top-level element in the page body')]).
+ :- context_variable(webcomponents_selector, atom, [
+     env('WEBCOMPONENTS_SELECTOR'), 
+     default(''), 
+     describe(
+         'comma separate list of key-value pairs, used to filter WebComponent resources with coresponding filters')]).
 
-:- http_handler(root('fe-config'), logged_http(serve_fe_config), [prefix]).
-:- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
-:- http_handler(root('assets'), logged_http(serve_assets), [prefix]).
-:- http_handler(root(modules), logged_http(serve_assets), [prefix]).
-:- http_handler(root('web-components'), logged_http(serve_webcomponents), [prefix]). 
-:- http_handler(root('favicon.ico'), logged_http(http_reply_file(asset('icon/favicon.ico')), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]), []).
-:- http_handler(root(.), logged_http(serve_spa), [prefix]). 
+%%%% ROUTING TABLE
+
+ :- http_handler(root('fe-config'), logged_http(serve_fe_config), [prefix]).
+ :- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
+ :- http_handler(root('assets'), logged_http(serve_assets), [prefix]).
+ :- http_handler(root(modules), logged_http(serve_assets), [prefix]).
+ :- http_handler(root('web-components'), logged_http(serve_webcomponents), [prefix]). 
+ :- http_handler(root('app-icons'), logged_http(serve_app_icons), [prefix]). 
+ :- http_handler(root('favicon.ico'), logged_http(http_reply_file(asset('icon/favicon.ico')), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]), []).
+ :- http_handler(root(.), logged_http(serve_spa), [prefix]). 
+
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
