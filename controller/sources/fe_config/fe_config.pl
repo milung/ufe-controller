@@ -21,7 +21,7 @@
 :- use_module(library(execution_context)).
 
 :- use_module(source(http_extra/http_extra)).
-
+:- use_module(source(logging/logger)).
 :- dynamic 
     k8s/3,
     config_cache/3, % Config:dict, Etag:atom, LastModifiet:float
@@ -113,25 +113,30 @@ http_header:field_name(etag) --> "ETag".
   serve_webcomponents(Request) :-
     webcomponent_uri(Request, Uri, Hash),
     request_pass_through_headers(Request, RequestHeaders),
-    http_get(
-        Uri, Bytes, 
-        [
-            to(codes),
-            input_encoding(octet),
-            status_code(Status),
-            header(content_type, ContentType),
-            header(etag, EtagExt),
-            header(last_modified, LastModifiedExt),
-            header(cache_control, CacheControlExt), 
-            timeout(10) 
-            | RequestHeaders
-        ]
+    log(info, fe_config, "Retrieving web component data at ~w", [Uri], []),
+    catch(
+        http_get(
+            Uri, Bytes, 
+            [
+                to(codes),
+                input_encoding(octet),
+                status_code(Status),
+                header(content_type, ContentType),
+                header(etag, EtagExt),
+                header(last_modified, LastModifiedExt),
+                header(cache_control, CacheControlExt), 
+                timeout(10) 
+                | RequestHeaders
+            ]
+        ),
+        Error,
+        Status=502
     ),
     (   Status = 404
     ->  http_404([], Request)
     ;   between(500, 599, Status)
-    ->  format( atom(Msg), 'The web-component gateway returned ~w', [Status]),
-        http_response(Request, Msg, [],  502)
+    ->  format( codes(Msg), 'The web-component gateway returned ~w : Error: ~w', [Status, Error]),
+        http_response(Request, bytes(text/plain, Msg), [],  502)
     ;   (   Hash \= []
         ->  Headers = [cache_control('public, max-age=31536000, immutable'), etag(Hash)]
         ;   % copy caching control headers from the remote provider
@@ -361,7 +366,7 @@ request_header_value(Request, HeaderName, Value, Default) :-
 trimmed_base_url(BaseUrl) :-
     context_variable_value(server:server_base_url, Base0),
     atom_concat('/', Base1, Base0),
-    (   atom_concat(Base1, '/', BaseUrl)
+    (   atom_concat(BaseUrl, '/', Base1)
     ->  true
     ;   BaseUrl = Base1
     ).

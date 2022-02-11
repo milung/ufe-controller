@@ -1,4 +1,5 @@
 :- module(logger, [
+    log/5,             %  +Level:atom, +Module:atom, +MessageFmt:string, +FormatArgs:list, +Options:list
     logged_http/2      % :Goal, +Request:list
 ]).
 %! <module> logger doing some cool things
@@ -12,6 +13,7 @@
 
 :- meta_predicate logged_http(1, +).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/json)).
 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -38,8 +40,16 @@ logged_http(Goal, Request) :-
     print_message(error, http_request(goal_failed, Request, Module:Func/Arity1)),
     throw(http_reply(server_error(goal_failure(Module:Func/Arity1)))).
 
+
+log(Level, Module, MessageFmt, FmtArgs, _) :-
+    format(string(Message), MessageFmt, FmtArgs),
+    print_message(informational, json_log(_{ level: Level, message: Message, module: Module })).
+
 %%% PRIVATE PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%
 
+prolog:message(json_log(Data)) -->
+    { atom_json_dict( JSON, Data, [as(string), width(0)]) },
+    ["~w" - [JSON] ].
 prolog:message(http_request(received, Request, Module:Functor/Arity)) -->
     { memberchk(request_uri(Uri), Request) },
     ["HTTP request for ~p dispatched to ~w:~w/~w" - [Uri, Module, Functor, Arity] ].

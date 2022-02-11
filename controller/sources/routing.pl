@@ -83,6 +83,7 @@
 %%%% ROUTING TABLE
 
  :- http_handler(root('fe-config'), logged_http(serve_fe_config), [prefix]).
+ :- http_handler(root('healtz'), serve_fe_config, [prefix]).
  :- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
  :- http_handler(root('assets'), logged_http(serve_assets), [prefix]).
  :- http_handler(root(modules), logged_http(serve_assets), [prefix]).

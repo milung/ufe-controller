@@ -4,12 +4,6 @@
 			"path": ".."
 		},
 		{
-			"path": "..\\..\\swipl-libs\\k8s_client"
-		},
-		{
-			"path": "..\\..\\swipl-libs\\pl_mustache"
-		},
-		{
 			"path": "..\\..\\..\\predmet"
 		},
 		{
@@ -23,9 +17,6 @@
 		},
 		{
 			"path": "..\\..\\wac-stencil\\ambulance-webapi"
-		},
-		{
-			"path": "..\\..\\swipl-libs\\execution-context"
 		}
 	],
 	"settings": {}

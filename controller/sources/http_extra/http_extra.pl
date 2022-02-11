@@ -48,8 +48,13 @@ http_response(Request, Data, HdrExtra,  Code) :-
         copy_stream_data(RdHandle, current_output),
         close(RdHandle)),
     !.
-http_response(_, Data, HdrExtra, Code) :-
-    http_post_data(Data, current_output, [status(Code) | HdrExtra] ).
+ http_response(_, Data, HdrExtra, Code) :-
+    once(Code == ok ; Code < 300),
+    http_post_data(Data, current_output, [status(Code) | HdrExtra] ),
+    !.
+
+ http_response(_, Data, HdrExtra, Code) :-
+    throw(http_reply(Data,[status(Code) | HdrExtra] )).
 
 %! request_accept_languages(+Request:list, -Languages:list(atom), +Options) is semidet
 %  Unifies list of `Languages` with sorted list of the languages specified in the `Request`
