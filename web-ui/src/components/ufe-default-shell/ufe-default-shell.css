@@ -25,3 +25,14 @@ h1 {
   color: #fff;
   padding: 0 12px;
 }
+
+main {
+  height: calc(100vh - 64px);
+  overflow: auto;
+}
+
+mwc-drawer::shadow div.mdc-drawer-app-content {
+  overflow: hidden !important;
+}
+
+.application-area{ height: 100%;}

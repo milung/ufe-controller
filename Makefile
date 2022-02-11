@@ -1,6 +1,6 @@
 ############ PRESETS ##################
 # VERSION INFORMATION
-VERSION=0.1
+VERSION=0.2
 
 # DEPLOYMENT
 DEPLOY_ENVIRONMENT=sample

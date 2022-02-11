@@ -32,7 +32,7 @@ export class UfeDefaultShell {
         path={new RegExp('(^\/' + app.path + '\/|^\/' + app.path + '$)')}
         render={ () => {
           let url = app.load_url;
-          import(url);          
+          if(url?.length) { import(url); }        
           return <div class="application-area" innerHTML={content}></div>;
         }} />
     )

@@ -224,24 +224,19 @@ resource_context_config(Resource, Context, CfgIn, CfgOut ) :-
 
 resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     resource_moduleUri( Resource, ModuleUri),
-    (   Roles = Navigation.get(roles)
+    (   Roles = Navigation.get(roles) 
     ->  split_string(Roles, ",; ", ",; ", RolesList)
     ;   RolesList = ['*']
     ),
-    (   Labels = Resource.metadata.get(labels)
-    ->  true
-    ;   Labels = []),
-    (   Attributes = Navigation.get(attributes)
-    ->  true
-    ;   Attributes = [] ),
-    (   Details = Navigation.get(details)
-    ->  true
-    ;   Details = ''
-    ),
+    (   Labels = Resource.metadata.get(labels) ->  true ;   Labels = []),
+    (   Attributes = Navigation.get(attributes) ->  true;   Attributes = [] ),
+    (   Details = Navigation.get(details) ->  true ;   Details = '' ),
+    (   Priority = Navigation.get(priority) ->  true;   Priority = 0),
     App = _{
         title: Navigation.title,
         details: Details,
         path: Navigation.path,
+        priority: Priority,
         element: Navigation.element,
         load_url: ModuleUri, 
         roles: RolesList, 
@@ -258,19 +253,23 @@ resource_config_preload(Resource, CfgIn, CfgOut) :-
     ;   CfgOut = CfgIn
     ).
 
+
 resource_moduleUri(Resource, ModuleUri) :-
-(   atom_string(true, Resource.spec.get(proxy))
-->  (   Suffix0 = Resource.spec.get('hash-suffix')
-    ->  atomic_list_concat(['.', Suffix0], Suffix)
-    ;   Suffix = ''
-    ),
-    atomic_list_concat([
-        '/web-components/',  
-        Resource.metadata.namespace, '/',
-        Resource.metadata.name, '/',  
-        Resource.metadata.name, Suffix, '.jsm'], ModuleUri)
-;   atom_string( ModuleUri, Resource.spec.'module-uri')
-).
+    (  atom_string('built-in', Resource.spec.'module-uri')
+    -> ModuleUri = ''
+    ;  (   atom_string(true, Resource.spec.get(proxy))
+       ->  (   Suffix0 = Resource.spec.get('hash-suffix')
+           ->  atomic_list_concat(['.', Suffix0], Suffix)
+           ;   Suffix = ''
+           ),
+           atomic_list_concat([
+               '/web-components/',  
+               Resource.metadata.namespace, '/',
+               Resource.metadata.name, '/',  
+               Resource.metadata.name, Suffix, '.jsm'], ModuleUri)
+       ;   atom_string( ModuleUri, Resource.spec.'module-uri')
+       )
+    ).
 
 webcomponent_uri(Request, Uri, Hash) :-
     option(path_info(Path), Request),

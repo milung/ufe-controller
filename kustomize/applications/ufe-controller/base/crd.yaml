@@ -68,6 +68,13 @@ spec:
                         details: The HTML element tag name to use when navigated to the specific path
                         type: string
                         example: my-element-name
+                      priority:
+                        description: |
+                          The priority of the navigation entry in lists. The entries with higher priority are  
+                          displayed before entries with the lower proorities, if there is ordering 
+                          supported by the list. Default priority is 0
+                        type: number
+                        default: 0
                       attributes: 
                         description: |
                           A list of key-value pairs to assign specific attributes to the element. The `name` is
@@ -113,6 +120,13 @@ spec:
                           navigation lists, or as a title when on the particular path
                         type: string
                         example: My Cool Embeded And Navigable App
+                      priority:
+                        description: |
+                          The priority of the navigation entry in lists. The entries with higher priority are  
+                          displayed before entries with the lower proorities, if there is ordering 
+                          supported by the list. Default priority is 0
+                        type: number
+                        default: 0
                       details: 
                         details: |
                           Additional description to explain to the user the purpose of the component. It is shown 

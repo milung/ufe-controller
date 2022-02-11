@@ -11,6 +11,7 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  padding: 0.3rem
 }
 .card-wrapper {
   padding: 16px;

@@ -7,9 +7,9 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { Router } from "stencil-router-v2";
 export namespace Components {
-    interface AppHome {
-    }
-    interface AppProfile {
+    interface UfeApplicationCards {
+        "router": Router;
+        "selector": string | {[label:string]: string};
     }
     interface UfeApplicationsList {
         "router": Router;
@@ -17,19 +17,18 @@ export namespace Components {
     }
     interface UfeDefaultShell {
     }
+    interface UfeFrame {
+        "height": string;
+        "src": string;
+        "width": string;
+    }
 }
 declare global {
-    interface HTMLAppHomeElement extends Components.AppHome, HTMLStencilElement {
+    interface HTMLUfeApplicationCardsElement extends Components.UfeApplicationCards, HTMLStencilElement {
     }
-    var HTMLAppHomeElement: {
-        prototype: HTMLAppHomeElement;
-        new (): HTMLAppHomeElement;
-    };
-    interface HTMLAppProfileElement extends Components.AppProfile, HTMLStencilElement {
-    }
-    var HTMLAppProfileElement: {
-        prototype: HTMLAppProfileElement;
-        new (): HTMLAppProfileElement;
+    var HTMLUfeApplicationCardsElement: {
+        prototype: HTMLUfeApplicationCardsElement;
+        new (): HTMLUfeApplicationCardsElement;
     };
     interface HTMLUfeApplicationsListElement extends Components.UfeApplicationsList, HTMLStencilElement {
     }
@@ -43,17 +42,23 @@ declare global {
         prototype: HTMLUfeDefaultShellElement;
         new (): HTMLUfeDefaultShellElement;
     };
+    interface HTMLUfeFrameElement extends Components.UfeFrame, HTMLStencilElement {
+    }
+    var HTMLUfeFrameElement: {
+        prototype: HTMLUfeFrameElement;
+        new (): HTMLUfeFrameElement;
+    };
     interface HTMLElementTagNameMap {
-        "app-home": HTMLAppHomeElement;
-        "app-profile": HTMLAppProfileElement;
+        "ufe-application-cards": HTMLUfeApplicationCardsElement;
         "ufe-applications-list": HTMLUfeApplicationsListElement;
         "ufe-default-shell": HTMLUfeDefaultShellElement;
+        "ufe-frame": HTMLUfeFrameElement;
     }
 }
 declare namespace LocalJSX {
-    interface AppHome {
-    }
-    interface AppProfile {
+    interface UfeApplicationCards {
+        "router"?: Router;
+        "selector"?: string | {[label:string]: string};
     }
     interface UfeApplicationsList {
         "router"?: Router;
@@ -61,21 +66,26 @@ declare namespace LocalJSX {
     }
     interface UfeDefaultShell {
     }
+    interface UfeFrame {
+        "height"?: string;
+        "src"?: string;
+        "width"?: string;
+    }
     interface IntrinsicElements {
-        "app-home": AppHome;
-        "app-profile": AppProfile;
+        "ufe-application-cards": UfeApplicationCards;
         "ufe-applications-list": UfeApplicationsList;
         "ufe-default-shell": UfeDefaultShell;
+        "ufe-frame": UfeFrame;
     }
 }
 export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
-            "app-home": LocalJSX.AppHome & JSXBase.HTMLAttributes<HTMLAppHomeElement>;
-            "app-profile": LocalJSX.AppProfile & JSXBase.HTMLAttributes<HTMLAppProfileElement>;
+            "ufe-application-cards": LocalJSX.UfeApplicationCards & JSXBase.HTMLAttributes<HTMLUfeApplicationCardsElement>;
             "ufe-applications-list": LocalJSX.UfeApplicationsList & JSXBase.HTMLAttributes<HTMLUfeApplicationsListElement>;
             "ufe-default-shell": LocalJSX.UfeDefaultShell & JSXBase.HTMLAttributes<HTMLUfeDefaultShellElement>;
+            "ufe-frame": LocalJSX.UfeFrame & JSXBase.HTMLAttributes<HTMLUfeFrameElement>;
         }
     }
 }

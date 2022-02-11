@@ -12,6 +12,7 @@ export interface UfeWebApp extends UfeElement{
     title: string;
     details: string;
     path: string;
+    priority: number;
 }
 
 export interface UfeContext extends UfeElement {
@@ -70,7 +71,7 @@ class UfeRegistryImpl implements UfeRegistry{
             let response = await fetch('/fe-config');
             UfeRegistryImpl.webConfig  = await response.json();
             let preloads = UfeRegistryImpl.webConfig != null ? UfeRegistryImpl.webConfig.preload : [];
-            preloads.forEach( url => import(url))
+            preloads.forEach( url => { if(url?.length) import(url);})
         }
     }
 
@@ -85,7 +86,9 @@ class UfeRegistryImpl implements UfeRegistry{
     }
 
     navigableApps(selector: { [name: string]: string} = {} ): UfeWebApp[]  {
-        return this.matchSelector(selector, UfeRegistryImpl.webConfig.apps);
+        return this
+            .matchSelector(selector, UfeRegistryImpl.webConfig.apps)
+            .sort( (a, b) => a.priority  - b.priority);
     }
 
     contextElements(context: string, selector: { [name: string]: string} = {}): UfeContext[]  {

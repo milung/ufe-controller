@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "..\\..\\radio-webc"
+		},
+		{
+			"path": "..\\..\\wac-stencil\\ambulance-webapi"
 		}
 	],
 	"settings": {}
