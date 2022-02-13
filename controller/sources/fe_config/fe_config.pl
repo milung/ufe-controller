@@ -374,7 +374,7 @@ trimmed_base_url(BaseUrl) :-
 user_request_config(Request, Config, UserConfig) :-
     context_variable_value(user_id_header, IdHeader),
     context_variable_value(user_name_header, NameHeader),
-    context_variable_value(user_groups_header, RolesHeader),
+    context_variable_value(user_roles_header, RolesHeader),
     request_header_value(Request, IdHeader, UserId),
     request_header_value(Request, NameHeader, UserName, UserId),
     request_header_value(Request, RolesHeader, UserRoles, ''),

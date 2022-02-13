@@ -22,7 +22,8 @@
 
 :- dynamic   
     http:location/3.
-
+:- context_variable_value(server:server_base_url, Base),
+   set_setting(http:prefix, Base).
 
 %%%%%%%%%   CONTEXT   VARIABLES %%%%%%%%%%%%%%%%%%%%
  :- context_variable(app_title, atom, [
