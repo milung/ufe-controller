@@ -1,4 +1,4 @@
-# Mikro-Front End Controller and CRD for kubernetes
+# Micro-Front End Controller and CRD for kubernetes
 
 Implementation of the [Kubernetes Controller] pattern over custom resources specifying front-end web components to be dynamically integrated into a user interface application shell.
 
@@ -72,7 +72,6 @@ The backend of the controller can be configured by setting environment variables
 |USER_NAME_HEADER|x-forwarded-user|incomming request`s header name (lowercase) specifying the user name|
 |USER_ROLES_HEADER|x-forwarded-groups|incomming request`s header name (lowercase) specifying the list of user roles (or groups)|
 |WEBCOMPONENTS_SELECTOR||comma separate list of key-value pairs, used to filter WebComponent resources handled by this controller|.
-
 
 ## Server endpoints
 
