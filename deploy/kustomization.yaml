@@ -5,6 +5,9 @@ resources:
 - crd.yaml
 - deployment.yaml
 - service.yaml
+- clusterrole.yaml
+- clusterrolebinding.yaml
+- serviceaccount.yaml
 
 commonLabels:
   app: micro-fe

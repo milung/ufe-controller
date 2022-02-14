@@ -12,6 +12,7 @@ spec:
       labels: 
         pod: ufe-controller
     spec:
+      serviceAccountName: ufe-controller-account
       containers:
       - name: ufe-controller
         image: milung/ufe-controller
@@ -27,14 +28,14 @@ spec:
             
         livenessProbe:
           httpGet:
-            path: /fe-config
+            path: /healtz
             port: http
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
           requests:
             memory: "64M"
-            cpu: "0.1"
+            cpu: "0.01"
           limits:
             memory: "320M"
             cpu: "0.3"

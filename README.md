@@ -55,8 +55,41 @@ spec:
 
 ## Server Configuration
 
-TBD. 
+The backend of the controller can be configured by setting environment variables, below is a list of the currently supported variable:
+
+| Env. Variable | Default Value | Description |
+|- |- |- | 
+|ACCEPTS_LANGUAGES|en|List of semicolon, or comma separated language codes that are supported. If there is match between `Accept-Language` header and this list, then language of html element is set to such language. In case there is no match then html language is set to the first language in this list|
+|APPLICATION_DESCRIPTION||Some detailed description of the applivation to be part of the `index.html` meta. Language specific descriptions are also possible, e.g. APPLICATION_DESCRIPTION_EN_US|
+|APPLICATION_SHELL_CONTEXT|application-shell|context of the dynamic web component that is used to retrieve the application shell - used to build the top-level element in the page body|
+|APPLICATION_TITLE_SHORT|Shell|Short version of the language fallback application title, language specific titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US|
+|APPLICATION_TITLE|Application shell|Language fallback application title, language specific titles are also possible, e.g. APPLICATION_TITLE_EN_US|
+|BASE_URL|\\ |Base URL of the server, all absolute links are prefixed with this address|
+|HTTP_CSP_HEADER|default-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com/ https://fonts.gstatic.com/; font-src \'self\' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; script-src \'nonce-{NONCE_VALUE}\'; |Content Security Policy header directives for serving the root SPA html page. The placeholder `{NONCE_VALUE}` will be automatically replaced by the random nonce text used to augment `<script>` elements in the html file.|
+|HTTP_PORT|80|HTTP port the server is listening on.|
+|OBSERVE_NAMESPACES|Comma separated list of namespaces in which to look for webcomponents to be served by this instance|
+|USER_ID_HEADER|x-forwarded-email|incomming request`s header name (lowercase) specifying the user identifier, typically email|
+|USER_NAME_HEADER|x-forwarded-user|incomming request`s header name (lowercase) specifying the user name|
+|USER_ROLES_HEADER|x-forwarded-groups|incomming request`s header name (lowercase) specifying the list of user roles (or groups)|
+|WEBCOMPONENTS_SELECTOR||comma separate list of key-value pairs, used to filter WebComponent resources handled by this controller|.
+
+
+## Server endpoints
+
+_All endpoints may be prefixed by `BASE_URL` path._
+
+| Endpoint  | Description |
+|- |- |
+| `/app-icons/<navigation path>`| The `navigation` entry may specify the icon for the application, to be used in the fronted. In such case the icon can be retrieved under this endpoint, given the `<navigation path>` matches the property `path` of the given navigation entry. |
+| `/fe_config` | Serves `application/json` object that describes the current applications, context and modules collected by the controller. Used in the frontend for dynamic loading of the web components. See interface `UfeCOnfiguration` in [./web-ui/src/services/ufe-registry.tsx] for the type definition. |
+| '/healtz`| Health check of the controller |
+| '/web-components/<namespace>/<name> | In the case the `WebComponent` witn the matadata `<name>` and `<namespace>` is configured with the property `proxy: true`, then its module and all relative assets are served under this path |
+| `/` | All other paths are routed to frontend single page applicatio - see below description. |
 
 ## Application Shell Configuration
 
-TBD. 
+The `index.html` page is initially empty and loads the `/fe_config` json object, that describes the application, contexts, and basic user identity. The object is exposed at `window.ufeRegistry`, if you need a direct access. After page load, the script decide, which web component to load as an application shell. By default it will use built in web omponent with the element tag `ufe-default-shell`. It is possible to configure controller with the environment variable `APPLICATION_SHELL_CONTEXT` and then register `WebComponent` with such context element to replace the application shell, and create custom application shell. Eventuall, the complete built in user interface may be ignored, and custom front end applicatio shell may be used and direct requestes to the `ufe-controller` endpoints described above.
+
+The static resources for the UI are under the path `/app/www`, you may eventually mount additional assets there or replace the prepared assets. When serving the [`index.html`](./web-ui/src/index.html), the controller preprocess it and replaces some parts with predefined environment variables, using the [{{mustache}}](https://mustache.github.io/) syntax. Additionally, all script elements in the `index.html` has added dynamically generated [nonce](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/nonce
+
+In case you want to load content from the other origin, you may need to adapt the environment variable `HTTP_CSP_HEADER`, otherwise the request will be blocked by browsers.
