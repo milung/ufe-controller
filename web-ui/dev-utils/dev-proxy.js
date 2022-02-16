@@ -1,5 +1,6 @@
 const http = require('http');
 const httpProxy = require('http-proxy');
+const { runInNewContext } = require('vm');
 
 
 const proxyApi = new httpProxy.createProxyServer({
@@ -15,12 +16,18 @@ const proxyStencil = new httpProxy.createProxyServer({
         port: 3333
     }
 });
+
+
 const proxyServer = http.createServer(function (req, res) {
-    if (    req.url.match(/\/fe-config/) 
+    console.log(req.url);
+    if ( req.url.match(/\/fe-config/) 
         ||  req.url.match(/\/web-components/)
-        ||  req.url.match(/\/app-icons/)) {
+        ||  req.url.match(/\/app-icons/)
+        ||  req.url.match(/\/avatar/)) {
+        console.log('api');
         proxyApi.web(req, res);
     } else {
+        console.log('stencil 3');
         proxyStencil.web(req, res);
     }
 });

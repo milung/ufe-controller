@@ -27,14 +27,14 @@ export class UfeApplicationCards {
   }
 
   app_render(app) {
-    const content = this.ufeRegistry.elementHtml(app);
+    const content = this.ufeRegistry.elementHtmlText(app);
     return (
       <Route 
         path={new RegExp('(^\/' + app.path + '\/|^\/' + app.path + '$)')}
         render={ () => {
           let url = app.load_url;
           if(url?.length) { import(url); }        
-          return <div class="application-area">{content}</div>;
+          return <div class="application-area" innerHTML={content}></div>;
         }} />
     )
   }
