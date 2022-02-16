@@ -23,7 +23,7 @@ CONTROLLER_SOURCES=$(call rwildcard, controller, *.pl)
 
 ##########  GOALS #####################
 
-.PHONY: deploy
+.PHONY: deploy dev-server
 
 controller.push: controller.image
 	docker push $(CONTROLLER_TAG)
@@ -62,6 +62,10 @@ deploy: controller.push profiles.push
 .build:
 	@$(MAKE_PATH)  .build
 
+dev-server:
+	kubectl port-forward -n ingress-nginx service/ingress-nginx-controller  5252:80 
+	node web-ui\dev-utils\dev-proxy.js 
+	cd web-ui; npm run start
 
 vpath %.image .build
 vpath %.push .build

@@ -1,3 +1,4 @@
+import { h, VNode } from "@stencil/core";
 import { createRouter, Router } from "stencil-router-v2";
 
 export interface UfeElement {
@@ -38,7 +39,9 @@ export interface UfeRegistry {
     contextElements(context: string, selector?: { [name: string]: string}): UfeContext[] ;
 
     preloadDependenciesAsync(elements: UfeElement[]): Promise<void>;
-};
+
+    elementHtml(element: UfeElement): VNode;
+}
 
 class UfeRegistryImpl implements UfeRegistry{
 
@@ -96,6 +99,15 @@ class UfeRegistryImpl implements UfeRegistry{
         return this
             .matchSelector(selector, UfeRegistryImpl.webConfig.contexts)
             .filter(_ => _.contextNames.includes(context));
+    }
+
+    elementHtml(app: UfeElement): VNode {
+        let content = `<${app.element}`;
+        app.attributes.forEach(attribute => {
+        content += ` ${attribute.name}="${attribute.value}"`;
+        });
+        content += `></${app.element}>`;
+        return h(content);
     }
 
     async preloadDependenciesAsync(elements: UfeElement[]) {

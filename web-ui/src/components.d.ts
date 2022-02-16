@@ -15,6 +15,10 @@ export namespace Components {
         "router": Router;
         "selector": string | {[label:string]: string};
     }
+    interface UfeContext {
+        "context": string;
+        "selector": string | {[label:string]: string};
+    }
     interface UfeDefaultShell {
     }
     interface UfeFrame {
@@ -36,6 +40,12 @@ declare global {
         prototype: HTMLUfeApplicationsListElement;
         new (): HTMLUfeApplicationsListElement;
     };
+    interface HTMLUfeContextElement extends Components.UfeContext, HTMLStencilElement {
+    }
+    var HTMLUfeContextElement: {
+        prototype: HTMLUfeContextElement;
+        new (): HTMLUfeContextElement;
+    };
     interface HTMLUfeDefaultShellElement extends Components.UfeDefaultShell, HTMLStencilElement {
     }
     var HTMLUfeDefaultShellElement: {
@@ -51,6 +61,7 @@ declare global {
     interface HTMLElementTagNameMap {
         "ufe-application-cards": HTMLUfeApplicationCardsElement;
         "ufe-applications-list": HTMLUfeApplicationsListElement;
+        "ufe-context": HTMLUfeContextElement;
         "ufe-default-shell": HTMLUfeDefaultShellElement;
         "ufe-frame": HTMLUfeFrameElement;
     }
@@ -64,6 +75,10 @@ declare namespace LocalJSX {
         "router"?: Router;
         "selector"?: string | {[label:string]: string};
     }
+    interface UfeContext {
+        "context"?: string;
+        "selector"?: string | {[label:string]: string};
+    }
     interface UfeDefaultShell {
     }
     interface UfeFrame {
@@ -74,6 +89,7 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "ufe-application-cards": UfeApplicationCards;
         "ufe-applications-list": UfeApplicationsList;
+        "ufe-context": UfeContext;
         "ufe-default-shell": UfeDefaultShell;
         "ufe-frame": UfeFrame;
     }
@@ -84,6 +100,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "ufe-application-cards": LocalJSX.UfeApplicationCards & JSXBase.HTMLAttributes<HTMLUfeApplicationCardsElement>;
             "ufe-applications-list": LocalJSX.UfeApplicationsList & JSXBase.HTMLAttributes<HTMLUfeApplicationsListElement>;
+            "ufe-context": LocalJSX.UfeContext & JSXBase.HTMLAttributes<HTMLUfeContextElement>;
             "ufe-default-shell": LocalJSX.UfeDefaultShell & JSXBase.HTMLAttributes<HTMLUfeDefaultShellElement>;
             "ufe-frame": LocalJSX.UfeFrame & JSXBase.HTMLAttributes<HTMLUfeFrameElement>;
         }

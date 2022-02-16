@@ -260,7 +260,7 @@ resource_config_app(Resource, CfgIn, CfgOut) :-
  resource_config_app(_, Cfg, Cfg).
 
 resource_config_ctx(Resource, CfgIn, CfgOut) :-
-    Contexts = Resource.get(spec).get(contexts),
+    Contexts = Resource.get(spec).get(contextElements),
     foldl(resource_context_config(Resource), Contexts, CfgIn, CfgOut ),
     !.
 resource_config_ctx(_, Cfg, Cfg).
@@ -391,8 +391,6 @@ user_request_config(Request, Config, UserConfig) :-
         anonymous: true
     }).
     
-
-
 webcomponent_uri(Request, Uri, Hash) :-
     option(path_info(Path), Request),
     trimmed_base_url(Base),

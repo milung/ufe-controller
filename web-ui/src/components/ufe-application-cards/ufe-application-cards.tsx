@@ -1,5 +1,5 @@
 import { Component, Host, h, Prop } from '@stencil/core';
-import { Router } from 'stencil-router-v2';
+import { Route, Router } from 'stencil-router-v2';
 import { getUfeRegistryAsync, UfeRegistry } from '../../services/ufe-registry';
 import '@material/mwc-button';
 
@@ -25,6 +25,20 @@ export class UfeApplicationCards {
   private getSelectorObject(): {[label:string]: string} {
      return {};
   }
+
+  app_render(app) {
+    const content = this.ufeRegistry.elementHtml(app);
+    return (
+      <Route 
+        path={new RegExp('(^\/' + app.path + '\/|^\/' + app.path + '$)')}
+        render={ () => {
+          let url = app.load_url;
+          if(url?.length) { import(url); }        
+          return <div class="application-area">{content}</div>;
+        }} />
+    )
+  }
+
   public render() {
     const apps = this.ufeRegistry.navigableApps( this.getSelectorObject() )
     return (

@@ -65,6 +65,7 @@ export class UfeDefaultShell {
               <mwc-icon-button icon="menu" slot="navigationIcon" ></mwc-icon-button>
               <div slot="title">{title}</div>
               <mwc-icon-button icon="home" slot="actionItems" {...href("/")}></mwc-icon-button>
+              <ufe-context context="bar-tools"></ufe-context>
               <main>
                 <Router.Switch>
                   {apps.map(this.app_render)}
