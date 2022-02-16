@@ -22,6 +22,7 @@ export class UfeContext {
      return {};
   }
 
+  
   render() {
     const contextElements = this.ufeRegistry.contextElements( this.context, this.getSelectorObject() );
     this.ufeRegistry.preloadDependenciesAsync(contextElements);
@@ -31,11 +32,10 @@ export class UfeContext {
       <Host>
         <slot name="beforeALl"></slot>
         {contextElements.map( el => { 
-          const content = this.ufeRegistry.elementHtml(el);
           return (
             <context-item>
               <slot name="before-each"></slot>
-              {content}
+              <span innerHTML={this.ufeRegistry.elementHtmlText(el)}></span>
               <slot name="after-each"></slot>
             </context-item>
           )
