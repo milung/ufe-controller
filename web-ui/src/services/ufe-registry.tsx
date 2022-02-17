@@ -25,6 +25,12 @@ interface UfeConfiguration {
     preload: string[];
     apps: UfeWebApp[];
     contexts: UfeContext[];
+    anonymous?: boolean;
+    user?: {
+        id: string;
+        name: string;
+        roles: string;
+    }
 }
 
 export interface UfeRegistry {
@@ -40,6 +46,8 @@ export interface UfeRegistry {
     preloadDependenciesAsync(elements: UfeElement[]): Promise<void>;
 
     elementHtmlText(element: UfeElement): string;
+
+    get userId(): string;
 }
 
 class UfeRegistryImpl implements UfeRegistry{
@@ -49,6 +57,10 @@ class UfeRegistryImpl implements UfeRegistry{
     private static webConfig: UfeConfiguration = null;
 
     public readonly router: Router = createRouter();
+
+    get userId(): string {
+       return  UfeRegistryImpl.webConfig.user?.id;
+    }
 
     public href(href, router = this.router)  {
         return {
