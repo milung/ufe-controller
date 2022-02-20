@@ -6,6 +6,7 @@ import { href, Route } from 'stencil-router-v2';
 import { getUfeRegistryAsync, UfeRegistry } from '../../services/ufe-registry';
 
 
+
 @Component({
   tag: 'ufe-default-shell',
   styleUrl: 'ufe-default-shell.css',
@@ -52,9 +53,10 @@ export class UfeDefaultShell {
     const title = document.title;
     const apps = this.ufeRegistry.navigableApps();
     const Router = this.ufeRegistry.router;
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
 
     return (        
-        <mwc-drawer hasHeader type="dismissible" open>
+        <mwc-drawer hasHeader type={vw < 800 ? "modal" : "dismissible"} open={vw > 640}>
           <span slot="title">{title}</span>
           {/* <span slot="subtitle">subtitle</span> */}
           <div>

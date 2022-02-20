@@ -1,6 +1,7 @@
 :host {
   padding: 1rem;
-  display: flex
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .card {
@@ -15,7 +16,7 @@
 }
 .card-wrapper {
   padding: 16px;
-  width: 20rem;
+  width: min(20rem, calc(100vw - 72px));
   display: flex;
   flex-flow: column;
   height: 100%;

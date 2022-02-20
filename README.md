@@ -81,8 +81,8 @@ _All endpoints may be prefixed by `BASE_URL` path._
 |- |- |
 | `/app-icons/<navigation path>`| The `navigation` entry may specify the icon for the application, to be used in the fronted. In such case the icon can be retrieved under this endpoint, given the `<navigation path>` matches the property `path` of the given navigation entry. |
 | `/fe_config` | Serves `application/json` object that describes the current applications, context and modules collected by the controller. Used in the frontend for dynamic loading of the web components. See interface `UfeCOnfiguration` in [./web-ui/src/services/ufe-registry.tsx] for the type definition. |
-| '/healtz`| Health check of the controller |
-| '/web-components/<namespace>/<name> | In the case the `WebComponent` witn the matadata `<name>` and `<namespace>` is configured with the property `proxy: true`, then its module and all relative assets are served under this path |
+| `/healtz`| Health check of the controller |
+| `/web-components/<namespace>/<name>` | In the case the `WebComponent` witn the matadata `<name>` and `<namespace>` is configured with the property `proxy: true`, then its module and all relative assets are served under this path |
 | `/` | All other paths are routed to frontend single page applicatio - see below description. |
 
 ## Application Shell Configuration

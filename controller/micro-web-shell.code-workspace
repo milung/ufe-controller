@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "..\\..\\profile-webc"
+		},
+		{
+			"path": "..\\..\\error-page-webc"
 		}
 	],
 	"settings": {}
