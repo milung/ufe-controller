@@ -245,6 +245,21 @@ pass_through_match(HeaderValue, request_header(Header=Value) ) :-
     pass_through(Header),
     !.
 
+:- table(renase_uri/2). 
+
+rebase_uri(Uri, Rebased) :-
+    context_variable_value(server:server_base_url, Base),
+    (   atom_concat(BaseShort, '/', Base) 
+    ->  BaseFull = Base
+    ;   atom_concat(Base, '/', BaseFull),
+        BaseShort = Base
+    ),
+    (   atom_concat('/', _, Uri)
+    ->  atom_concat(BaseShort, Uri, Rebased)
+    ;   atom_concat(BaseFull, Uri, Rebased)
+    ),
+    !.
+
 request_pass_through_headers(Request, Headers) :- 
     convlist(pass_through_match, Request, Headers). 
 
@@ -313,8 +328,8 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
         attributes: Attributes
     },
     (   _ = Navigation.get(icon)
-    ->  context_variable_value(server:server_base_url, Base),
-        atomic_list_concat( [Base, 'app-icons/',Navigation.path], IconPath), 
+    ->  rebase_uri('app-icons/', Base),
+        atomic_list_concat( [Base, Navigation.path], IconPath), 
         App = App0.put(icon, IconPath)
     ;   App = App0
     ),
@@ -338,10 +353,9 @@ resource_moduleUri(Resource, ModuleUri) :-
            ->  atomic_list_concat(['.', Suffix0], Suffix)
            ;   Suffix = ''
            ),
-           context_variable_value(server:server_base_url, Base),
+           rebase_uri('/web-components/', WebCompUri),
            atomic_list_concat([
-               Base,
-               'web-components/',  
+               WebCompUri,
                Resource.metadata.namespace, '/',
                Resource.metadata.name, '/',  
                Resource.metadata.name, Suffix, '.jsm'], ModuleUri)
@@ -380,6 +394,7 @@ user_request_config(Request, Config, UserConfig) :-
     UserConfig = Config.put(_{
         anonymous: true
     }).
+
     
 webcomponent_uri(Request, Uri, Hash) :-
     option(path_info(Path), Request),
@@ -390,7 +405,9 @@ webcomponent_uri(Request, Uri, Hash) :-
     ;   Hash = []
     ),
     resource_moduleUri(Resource, ModuleUri),
-    atom_concat('/web-components', Path, ModuleUri),
+    rebase_uri('/web-components', WebCompUri),
+
+    atom_concat(WebCompUri, Path, ModuleUri),
     Uri = Resource.spec.'module-uri',
     !.
  webcomponent_uri(Request, Uri, []) :-

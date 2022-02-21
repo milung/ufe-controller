@@ -28,6 +28,7 @@
         set_setting(http:prefix, Base)
     )).
 
+
 %%%%%%%%%   CONTEXT   VARIABLES %%%%%%%%%%%%%%%%%%%%
  :- context_variable(app_title, atom, [
     env('APPLICATION_TITLE'), 
