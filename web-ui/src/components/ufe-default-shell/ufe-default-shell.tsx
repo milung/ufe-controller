@@ -27,7 +27,7 @@ export class UfeDefaultShell {
   app_render(app) {
     const appPath = this.ufeRegistry.basePath + app.path;
     let content = `<${app.element}`;
-    const attributes = [ ...app.attributes,  {name: "base-path", value: appPath } ];
+    const attributes = [  {name: "base-path", value: appPath }, ...app.attributes  ];
     attributes.forEach(attribute => {
       content += ` ${attribute.name}="${attribute.value}"`;
     });
