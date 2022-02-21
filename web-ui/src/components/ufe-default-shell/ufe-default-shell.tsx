@@ -1,4 +1,4 @@
-import { Component, h, Element } from '@stencil/core';
+import { Component, h, Element, State } from '@stencil/core';
 import '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
 import '@material/mwc-drawer';
@@ -18,6 +18,8 @@ export class UfeDefaultShell {
   
   @Element() element: HTMLElement;
 
+  @State() appTitle: string = document.title;
+
   async componentWillLoad() {
     this.ufeRegistry = await getUfeRegistryAsync();
   }
@@ -35,7 +37,9 @@ export class UfeDefaultShell {
       <Route 
         path={new RegExp('(^' + appPath + '\/|^' + appPath + '$)')}
         render={ () => {
-          document.title =app.title;
+          if (this.appTitle != app.title) {
+            setTimeout(() => {this.appTitle = app.title}, 0);
+          };
           let url = app.load_url;
           if(url?.length) { import(url); }        
           return <div class="application-area" innerHTML={content}></div>;
@@ -54,7 +58,8 @@ export class UfeDefaultShell {
   }
 
   render() {
-    const title = document.title;
+    const title = this.appTitle;
+    document.title = title;
     const apps = this.ufeRegistry.navigableApps();
     const Router = this.ufeRegistry.router;
     const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
