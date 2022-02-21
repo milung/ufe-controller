@@ -23,14 +23,17 @@ export class UfeDefaultShell {
   }
 
   app_render(app) {
+    const appPath = this.ufeRegistry.basePath + app.path;
     let content = `<${app.element}`;
-    app.attributes.forEach(attribute => {
+    const attributes = [ ...app.attributes,  {name: "base-path", value: appPath } ];
+    attributes.forEach(attribute => {
       content += ` ${attribute.name}="${attribute.value}"`;
     });
     content += `></${app.element}>`;
+    
     return (
       <Route 
-        path={new RegExp('(^\/' + app.path + '\/|^\/' + app.path + '$)')}
+        path={new RegExp('(^' + appPath + '\/|^' + appPath + '$)')}
         render={ () => {
           let url = app.load_url;
           if(url?.length) { import(url); }        
@@ -54,6 +57,7 @@ export class UfeDefaultShell {
     const apps = this.ufeRegistry.navigableApps();
     const Router = this.ufeRegistry.router;
     const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const base = this.ufeRegistry.basePath;
 
     return (        
         <mwc-drawer hasHeader type={vw < 800 ? "modal" : "dismissible"} open={vw > 640}>
@@ -70,11 +74,20 @@ export class UfeDefaultShell {
               <ufe-context context="app-bar-tools" slot="actionItems"></ufe-context>
               <main>
                 <Router.Switch>
-                  {apps.map(this.app_render)}
-                  <Route path="/">
+                  {apps.map(app => this.app_render(app))}
+                  <Route path={ p => p == "/" || p == base || p == base.substring(0, base.length-1)} >
                     <ufe-application-cards></ufe-application-cards>
                   </Route>
-                </Router.Switch>      
+                  <Route path={() => true}>
+                    <error-page status-code="404" path={document.location}>
+                        <div class="error-no-modules">
+                            <h1> 404: Not Found </h1> 
+                            <div class="path">{document.location.pathname}</div>
+                        </div>
+                        <a slot="home" {...href(base)}>Navigate to the landing page</a>
+                    </error-page>
+                  </Route>
+                </Router.Switch>    
               </main>
             </mwc-top-app-bar-fixed>
           </div>

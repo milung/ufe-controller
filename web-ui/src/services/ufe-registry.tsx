@@ -37,6 +37,8 @@ export interface UfeRegistry {
 
     router: Router;
 
+    basePath: string;
+
     href(href, router?: Router): {href: any; onClick: (ev: any) => void;};
 
     navigableApps(selector?: { [name: string]: string} ): UfeWebApp[] ;
@@ -78,12 +80,23 @@ class UfeRegistryImpl implements UfeRegistry{
         };
     };
 
+    private _basePathValue:string = null;
+
+    public  get basePath() {
+        if(! this._basePathValue ) {
+            this._basePathValue = new URL(document.baseURI).pathname || "/";
+            if(! this._basePathValue.endsWith('/')) { this._basePathValue + '/'}
+        }
+        return this._basePathValue;
+    }
+
     static async loadComponents() {
         if(UfeRegistryImpl.webConfig != null) {
             return UfeRegistryImpl.webConfig;
         }
         else {
-            let response = await fetch('/fe-config');
+            const impl = new UfeRegistryImpl();
+            let response = await fetch(`${impl.basePath}fe-config`);
             UfeRegistryImpl.webConfig  = await response.json();
             let preloads = UfeRegistryImpl.webConfig != null ? UfeRegistryImpl.webConfig.preload : [];
             preloads.forEach( url => { if(url?.length) import(url);})
@@ -125,8 +138,10 @@ class UfeRegistryImpl implements UfeRegistry{
         const loads = [...new Set(elements
             .filter(_ => _.load_url?.length)
             .map(_ => _.load_url))]
-            .map(_ => import(_) as Promise<{}>);
-        await Promise.all(loads);
+            .map(_ => import(_) as Promise<{}>); 
+        await Promise.all(loads).catch( reason => {
+            console.error(`Some of the dependencies failed to load: ${reason}`);
+        });
     }
 
     private matchSelector<T extends UfeElement>(selector: string | { [name: string]: string} | undefined, elements: T[]): T[]  {

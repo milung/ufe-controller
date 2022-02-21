@@ -361,16 +361,6 @@ request_header_value(Request, HeaderName, Value, Default) :-
     -> true
     ;  Value = Default.
 
-:-table trimmed_base_url/1 as shared.
-
-trimmed_base_url(BaseUrl) :-
-    context_variable_value(server:server_base_url, Base0),
-    atom_concat('/', Base1, Base0),
-    (   atom_concat(BaseUrl, '/', Base1)
-    ->  true
-    ;   BaseUrl = Base1
-    ).
-
 user_request_config(Request, Config, UserConfig) :-
     context_variable_value(user_id_header, IdHeader),
     context_variable_value(user_name_header, NameHeader),
@@ -393,8 +383,7 @@ user_request_config(Request, Config, UserConfig) :-
     
 webcomponent_uri(Request, Uri, Hash) :-
     option(path_info(Path), Request),
-    trimmed_base_url(Base),
-    atomic_list_concat([Base,Namespace, Component,_], '/', Path),
+    atomic_list_concat(['',Namespace, Component,_], '/', Path),
     k8s(Namespace, Component, Resource),
     (   Hash = Resource.spec.get('hash-suffix') 
     ->  true 
@@ -406,8 +395,7 @@ webcomponent_uri(Request, Uri, Hash) :-
     !.
  webcomponent_uri(Request, Uri, []) :-
     option(path_info(Path), Request),
-    trimmed_base_url(Base),
-    atomic_list_concat([Base,Namespace, Component|SubPath], '/', Path),
+    atomic_list_concat(['',Namespace, Component|SubPath], '/', Path),
     k8s(Namespace, Component, Resource),
     ModuleUri = Resource.spec.'module-uri',    
     atomic_list_concat(SubPath, '/', Relative),

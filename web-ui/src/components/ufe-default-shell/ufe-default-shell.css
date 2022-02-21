@@ -36,3 +36,7 @@ mwc-drawer::shadow div.mdc-drawer-app-content {
 }
 
 .application-area{ height: 100%;}
+
+.error-no-modules { margin: 1rem; }
+
+.error-no-modules h1 { color: black}
