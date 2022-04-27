@@ -90,8 +90,8 @@
 %%%% ROUTING TABLE
 
  :- http_handler(root('fe-config'), logged_http(serve_fe_config), [prefix]).
- :- http_handler(root('healtz'), health_check, [prefix]).
- :- http_handler('/healtz', health_check, []).
+ :- http_handler(root('healtz'), serve_health_check, [prefix]).
+ :- http_handler('/healtz', serve_health_check, []).
  :- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
  :- http_handler(root('assets'), logged_http(serve_assets), [prefix]).
  :- http_handler(root(modules), logged_http(serve_assets), [prefix]).
@@ -111,12 +111,6 @@ get_nonce(Nonce) :-
     atom_codes(Text, Codes),
     base64(Text, Nonce),
     !.
-
-health_check(_) :-
-    (   fe_config:config_cache(_, _,_ )
-    -> reply_json(_{ status: ok})
-    ;  reply_json(_{ status: error}, [status(500)])
-    ).
 
 html_lang_variable(Language, _, EnvironmentName, Value) :-
     atomic_list_concat([EnvironmentName, Language], '_', ENV0), 

@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "..\\..\\error-page-webc"
+		},
+		{
+			"path": "..\\..\\swipl-libs\\k8s_client"
 		}
 	],
 	"settings": {}

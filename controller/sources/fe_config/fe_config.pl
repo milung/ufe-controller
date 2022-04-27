@@ -163,8 +163,20 @@ http_header:field_name(etag) --> "ETag".
         'Tk8gUkVTT1VSQ0VTIERFVEVDVEVEIFlFVA',
         Now)
     ),
+    % the configuration is healthy after retrieved from watcher callback
+    set_unhealthy_status(web_component_watcher, "The watcher not started"),
+    set_healthy_status(fe_config, "No change was detected"),
     % Observe Kubernetes API
-    k8s_watch_resources_async(k8s_observer, 'fe.milung.eu', v1, webcomponents, Exit, [timeout(15)]),
+    k8s_watch_resources_async(
+        k8s_observer, 
+        'fe.milung.eu', 
+        v1, 
+        webcomponents, 
+        Exit, 
+        [
+            timeout(15), 
+            heartbeat_callback(http_extra:set_healthy_status(web_component_watcher, "Watching WebComponents", 30))
+        ]),
     print_message(information, ufe_controller(started)), 
     assertz(watcher_exit(Exit)).
 
@@ -211,7 +223,13 @@ fe_config_update :-
             get_time(LastModifiedStamp),
             assert(config_cache(Config, Etag, LastModifiedStamp))
         )
-    ).
+    ),
+    set_healthy_status(fe_config, 'The configuration was updated successfully'),
+    !.
+ fe_config_update :-
+    set_unhealthy_status(fe_config, 'The configuration update failed'),
+    !,
+    fail.
 
 k8s_observer(added, Resource) :-
     atom_string(Namespace, Resource.metadata.namespace),

@@ -5,16 +5,25 @@
     request_accept_languages/3, % +Request:list, -Languages:list(atom), +Options
     request_match_condition/4,  % +Request:list, ?CurrentTag:atom, ?LastModification:float, -WeakMatch:boolean
     request_match_language/3,   % +Request:list, +Supported:list(atom), -Language:atom
-    serve_assets/1              % +Request:list
+    serve_assets/1,             % +Request:list
+    serve_health_check/1,       % +Request:list
+    set_health_status/4,        % +Status:oneof(healthy, unhealthy), +OperationalParameter:atom, +Message:string, +ValidSeconds:number
+    set_healthy_status/3,       %  +OperationalParameter:atom, +Message:string, +ValidSeconds:number
+    set_healthy_status/2,       %  +OperationalParameter:atom, +Message:string
+    set_healthy_status/1,       %  +OperationalParameter:atom
+    set_unhealthy_status/2      %  +OperationalParameter:atom, +Message:string
     ]).
 %! <module> http_extra predicates
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/json)).
+:- use_module(library(http/http_json)).
 :- use_module(library(dcg/basics)).
 
 user:file_search_path(http_gzip_cache, asset(cache)).
+
+:- dynamic health_status/1.
 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -49,12 +58,16 @@ http_response(Request, Data, HdrExtra,  Code) :-
         close(RdHandle)),
     !.
  http_response(_, Data, HdrExtra, Code) :-
-    once(Code == ok ; Code < 300),
+    (   number(Code)
+    ->  N = Code
+    ;   http_header:status_number(Code,N) 
+    ),
+    N < 300,
     http_post_data(Data, current_output, [status(Code) | HdrExtra] ),
     !.
 
  http_response(_, Data, HdrExtra, Code) :-
-    throw(http_reply(Data,[status(Code) | HdrExtra] )).
+    throw(http_reply(Data, [status(Code) | HdrExtra] )).
 
 %! request_accept_languages(+Request:list, -Languages:list(atom), +Options) is semidet
 %  Unifies list of `Languages` with sorted list of the languages specified in the `Request`
@@ -181,8 +194,80 @@ serve_assets( Request) :-
  serve_assets(Request) :-
     option(path(Path), Request),
     throw(http_reply(not_found(Path))).
-    
+
+%! serve_health_check(+Request:list) is det
+%  checks if the status of all operational parameters are healthy and temporaly valid. 
+%  The operational status may be set by calling set_health_status.
+serve_health_check(_) :-
+    (   health_status(Value)
+    ->  true
+    ;   Value = _{}
+    ),
+    (   health_check(Value)
+    ->  Status = 200
+    ;   Status = 501
+    ),
+    reply_json(Value, [status(Status)]),
+    !.   
+
+
+%! set_health_status(+Status:oneof(healthy, unhealthy), +OperationalParameter:atom, +Message:string, +ValidSeconds:number ) is det
+%  sets health status of the particular operational parameter. The parameter is considered healthy only for the upcomming 
+%  amount of `ValidSeconds` time. If the status is not set again, then the parameter is considered unhealthy afterwards.
+%  Setting `ValidSeconds` to `-1` indicates the parameter is healthy undefinitely. 
+set_health_status(Status, OperationalParameter, Message, ValidSeconds ) :-
+    get_time(Now),
+    format_time(atom(Date), '%FT%T%z', Now, posix ),
+    Block = _{ status: Status, message: Message, statusTimeStamp: Date }, 
+    (   ValidSeconds >= 0
+    ->  get_time(Now),
+        ValidUntil is Now + ValidSeconds,
+        Block1 = Block.put(validUntil, ValidUntil)
+    ;   Block1 = Block
+    ),    
+    ParameterBlock = _{}.put(OperationalParameter,  Block1), 
+    transaction(
+        (   (   retract( health_status(Value) )
+            ->  true
+            ;   Value = _{}
+            ),
+            asserta( health_status(Value.put(ParameterBlock)))
+        )
+    ). 
+
+%! set_healthy_status( +OperationalParameter:atom, +Message:string, +ValidSeconds:number ) is det
+%  Same as `set_health_status(healthy, OperationalParameter, Message, ValidSeconds )`
+set_healthy_status(OperationalParameter, Message, ValidSeconds) :-
+    set_health_status(healthy, OperationalParameter, Message, ValidSeconds ).
+
+%! set_healthy_status(+OperationalParameter:atom, +Message:string) is det
+%  Same as `set_health_status(healthy, OperationalParameter, Message, -1 )`
+set_healthy_status(OperationalParameter, Message) :-
+    set_health_status(healthy, OperationalParameter, Message, -1 ).
+
+%! set_healthy_status(+OperationalParameter:atom) is det
+%  Same as `set_health_status(healthy, OperationalParameter, healthy, -1 )`
+set_healthy_status(OperationalParameter) :-
+    set_health_status(healthy, OperationalParameter, healthy, -1 ).
+
+%! set_unhealthy_status(+OperationalParameter:atom, +Message:string) is det
+%  Same as `set_health_status(unhealthy, OperationalParameter, Message, -1 )`
+set_unhealthy_status(OperationalParameter, Message) :-
+    set_health_status(unhealthy, OperationalParameter, Message, -1 ).
+
 %%% PRIVATE PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%
+health_check(Dict) :-
+    dict_pairs(Dict, _, Pairs),
+    maplist(health_check_component, Pairs).
+
+health_check_component(_ - Dict) :-
+    Dict.get(status) = healthy,
+    (   Dict.get(validUntil) = Validity
+    ->  get_time(Now),
+        Now < Validity
+    ;   true).
+
+
 lang_norm(Lang) -->
     alpha_to_lower(C),
     lang_norm_rest(Codes),
@@ -222,7 +307,7 @@ languages_supported_match([], [Lang|_], Lang).
     memberchk(Lang, SystemLanguages),
     !.
  languages_supported_match([_|Preferrence], SystemLanguages, Lang) :-
-    languages_supported_match(Preferrence, SystemLanguages, Lang).
+    languages_supported_match(Preferrence, SystemLanguages, Lang).  
 
 tag_values_match(Tag, false) -->
     blanks, [0'"], Tag, [0'"].
