@@ -65,7 +65,7 @@ The backend of the controller can be configured by setting environment variables
 |APPLICATION_TITLE_SHORT|Shell|Short version of the language fallback application title, language specific titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US|
 |APPLICATION_TITLE|Application shell|Language fallback application title, language specific titles are also possible, e.g. APPLICATION_TITLE_EN_US|
 |BASE_URL|\\ |Base URL of the server, all absolute links are prefixed with this address|
-|HTTP_CSP_HEADER|default-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com/ https://fonts.gstatic.com/; font-src \'self\' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; script-src \'nonce-{NONCE_VALUE}\'; |Content Security Policy header directives for serving the root SPA html page. The placeholder `{NONCE_VALUE}` will be automatically replaced by the random nonce text used to augment `<script>` elements in the html file.|
+|HTTP_CSP_HEADER|default-src 'self';font-src 'self' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/;script-src 'strict-dynamic' 'nonce-{NONCE_VALUE}'; manifest-src 'self' https://github.com/login/oauth/; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/ https://fonts.gstatic.com/;|Content Security Policy header directives for serving the root SPA html page. The placeholder `{NONCE_VALUE}` will be automatically replaced by the random nonce text used to augment `<script>` elements in the html file.|
 |HTTP_PORT|80|HTTP port the server is listening on.|
 |OBSERVE_NAMESPACES|Comma separated list of namespaces in which to look for webcomponents to be served by this instance|
 |USER_ID_HEADER|x-forwarded-email|incomming request`s header name (lowercase) specifying the user identifier, typically email|

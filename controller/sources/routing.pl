@@ -68,9 +68,11 @@
  :- context_variable(csp_header, atom, [
      env('HTTP_CSP_HEADER'), 
      default(
-         'default-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
-          font-src ''self'' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
-          script-src ''nonce-{NONCE_VALUE}''; '), 
+        'default-src 'self'; \c
+         font-src 'self' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
+         script-src 'strict-dynamic' 'nonce-{NONCE_VALUE}'; \c
+         manifest-src 'self' https://github.com/login/oauth/; \c
+         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/ https://fonts.gstatic.com/;'), 
      describe(
          'Content Security Policy header directives for serving \c
           the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
