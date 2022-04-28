@@ -222,8 +222,7 @@ set_health_status(Status, OperationalParameter, Message, ValidSeconds ) :-
     format_time(atom(Date), '%FT%T%z', Now, posix ),
     Block = _{ status: Status, message: Message, statusTimeStamp: Date }, 
     (   ValidSeconds >= 0
-    ->  get_time(Now),
-        ValidUntil is Now + ValidSeconds,
+    ->  ValidUntil is Now + ValidSeconds,
         Block1 = Block.put(validUntil, ValidUntil)
     ;   Block1 = Block
     ),    
@@ -232,8 +231,10 @@ set_health_status(Status, OperationalParameter, Message, ValidSeconds ) :-
         (   (   retract( health_status(Value) )
             ->  true
             ;   Value = _{}
-            ),
-            asserta( health_status(Value.put(ParameterBlock)))
+            ), 
+            retractall( health_status(_) ),
+            NewState = Value.put(ParameterBlock),
+            asserta( health_status(NewState))
         )
     ). 
 
