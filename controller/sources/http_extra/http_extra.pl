@@ -65,7 +65,9 @@ http_response(Request, Data, HdrExtra,  Code) :-
     N < 300,
     http_post_data(Data, current_output, [status(Code) | HdrExtra] ),
     !.
-
+ http_response(Request, json(Data), HdrExtra, Code) :-
+    atom_json_dict(Codes, Data, [as(codes)]),  % json data with non ok status seems to be not supported by built in library (??)
+    http_response(Request, codes(Codes, application/json), HdrExtra, Code).
  http_response(_, Data, HdrExtra, Code) :-
     throw(http_reply(Data, [status(Code) | HdrExtra] )).
 
@@ -166,7 +168,7 @@ request_match_language(Request, Supported, Language) :-
 %! serve_assets(+Request:list) is det
 %  checks for existence of the resource from Request's URI 
 %  and serves it to http server. Throws =|http_reply(not_found(Path)|= 
-%  if asset does not exists. The asset path is resolved by 
+%  if asset does not exists. The asset path is resolved 
 %  by using `asset(PathInfo)` resolution of the `absolute_file_name/1` 
 %  predicate. Sets last_modified header and assumes immutable 
 %  public caching. Gzip caching is by default located at `html(assets_gzip_cache)`.
