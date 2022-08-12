@@ -92,3 +92,21 @@ The `index.html` page is initially empty and loads the `/fe_config` json object,
 The static resources for the UI are under the path `/app/www`, you may eventually mount additional assets there, or replace the prepared assets. When serving the [`index.html`](./web-ui/src/index.html), the controller preprocess it and replaces some parts with predefined environment variables, using the [{{mustache}}](https://mustache.github.io/) syntax. Additionally, all script elements in the `index.html` has added dynamically generated [nonce](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/nonce).
 
 In the case you want to load content from  other origins, you may need to adapt the environment variable `HTTP_CSP_HEADER`, otherwise the request will be blocked by browsers.
+
+## Built-in web components
+
+Following web components are available for use in the hosted web components: 
+
+* `ufe-app-router` application router to host the current path's application as  specified by the navifation section in CRD. The attribute `home-component` specifies which component shall be hosted at the root path - defaults to `ufe-application-card`
+
+* `ufe-application-cards` - displays a card per registered navigation section in CRD. Attribute `selector` allows to narrow the list of applications/navigations based on their labels.
+
+* `ufe-application-cards` - similar to above but displays a `mwc-list` of application titles.
+
+* `ufe-context` - display sequence of the elements mentioned in the CRD's resources under `context elements` sections, that matches attribute `context`. Attribute `selector` allows to futher narrow the list of the elements by the elements labels.
+
+  This element accepts following slots:
+  * `beforeAll` - placed before the sequence of the elements being displayed
+  * `afterAll` - placed after the sequence of the elements being displayed
+  * `beforeEach` - placed before each element being displayed
+  * `afterEach` - placed after each element being displayed

@@ -7,6 +7,9 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { Router } from "stencil-router-v2";
 export namespace Components {
+    interface UfeAppRouter {
+        "homeComponent": string;
+    }
     interface UfeApplicationCards {
         "router": Router;
         "selector": string | {[label:string]: string};
@@ -28,6 +31,12 @@ export namespace Components {
     }
 }
 declare global {
+    interface HTMLUfeAppRouterElement extends Components.UfeAppRouter, HTMLStencilElement {
+    }
+    var HTMLUfeAppRouterElement: {
+        prototype: HTMLUfeAppRouterElement;
+        new (): HTMLUfeAppRouterElement;
+    };
     interface HTMLUfeApplicationCardsElement extends Components.UfeApplicationCards, HTMLStencilElement {
     }
     var HTMLUfeApplicationCardsElement: {
@@ -59,6 +68,7 @@ declare global {
         new (): HTMLUfeFrameElement;
     };
     interface HTMLElementTagNameMap {
+        "ufe-app-router": HTMLUfeAppRouterElement;
         "ufe-application-cards": HTMLUfeApplicationCardsElement;
         "ufe-applications-list": HTMLUfeApplicationsListElement;
         "ufe-context": HTMLUfeContextElement;
@@ -67,6 +77,9 @@ declare global {
     }
 }
 declare namespace LocalJSX {
+    interface UfeAppRouter {
+        "homeComponent"?: string;
+    }
     interface UfeApplicationCards {
         "router"?: Router;
         "selector"?: string | {[label:string]: string};
@@ -87,6 +100,7 @@ declare namespace LocalJSX {
         "width"?: string;
     }
     interface IntrinsicElements {
+        "ufe-app-router": UfeAppRouter;
         "ufe-application-cards": UfeApplicationCards;
         "ufe-applications-list": UfeApplicationsList;
         "ufe-context": UfeContext;
@@ -98,6 +112,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
+            "ufe-app-router": LocalJSX.UfeAppRouter & JSXBase.HTMLAttributes<HTMLUfeAppRouterElement>;
             "ufe-application-cards": LocalJSX.UfeApplicationCards & JSXBase.HTMLAttributes<HTMLUfeApplicationCardsElement>;
             "ufe-applications-list": LocalJSX.UfeApplicationsList & JSXBase.HTMLAttributes<HTMLUfeApplicationsListElement>;
             "ufe-context": LocalJSX.UfeContext & JSXBase.HTMLAttributes<HTMLUfeContextElement>;

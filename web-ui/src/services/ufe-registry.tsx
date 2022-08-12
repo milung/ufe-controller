@@ -97,6 +97,27 @@ class UfeRegistryImpl implements UfeRegistry{
         else {
             const impl = new UfeRegistryImpl();
             let response = await fetch(`${impl.basePath}fe-config`);
+            if(response.status == 404) {
+                UfeRegistryImpl.webConfig = {
+                    preload: [],
+                    apps: [
+                    // {
+                    //     element: "<some-app>",
+                    //     attributes: [],
+                    //     load_url: "url.js",
+                    //     title: "Some App",
+                    //     details: "SOme details",
+                    //     path: "/some",
+                    //     priority: 0,
+                    //     labels: {},
+                    // }
+                    ],
+                    contexts: [],
+                    anonymous: true,
+                    user: null
+                }
+                return;
+            }
             UfeRegistryImpl.webConfig  = await response.json();
             let preloads = UfeRegistryImpl.webConfig != null ? UfeRegistryImpl.webConfig.preload : [];
             preloads.forEach( url => { if(url?.length) import(url);})

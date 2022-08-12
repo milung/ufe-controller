@@ -79,21 +79,7 @@ export class UfeDefaultShell {
               <mwc-icon-button icon="home" slot="actionItems" {...href(base)}></mwc-icon-button>
               <ufe-context context="app-bar-tools" slot="actionItems"></ufe-context>
               <main>
-                <Router.Switch>
-                  {apps.map(app => this.app_render(app))}
-                  <Route path={ p => p == "/" || p == base || p == base.substring(0, base.length-1)} >
-                    <ufe-application-cards></ufe-application-cards>
-                  </Route>
-                  <Route path={() => true}>
-                    <error-page status-code="404" path={document.location.pathname}>
-                        <div class="error-no-modules">
-                            <h1> 404: Not Found </h1> 
-                            <div class="path">{document.location.pathname}</div>
-                        </div>
-                        <a slot="home" {...href(base)}>Navigate to the landing page</a>
-                    </error-page>
-                  </Route>
-                </Router.Switch>    
+                <ufe-app-router></ufe-app-router>
               </main>
             </mwc-top-app-bar-fixed>
           </div>
