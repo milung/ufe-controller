@@ -60,7 +60,6 @@ export class UfeDefaultShell {
   render() {
     const title = this.appTitle;
     document.title = title;
-    const apps = this.ufeRegistry.navigableApps();
     const Router = this.ufeRegistry.router;
     const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
     const base = this.ufeRegistry.basePath;
