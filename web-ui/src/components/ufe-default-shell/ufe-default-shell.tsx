@@ -2,7 +2,7 @@ import { Component, h, Element, State } from '@stencil/core';
 import '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
 import '@material/mwc-drawer';
-import { href, Route } from 'stencil-router-v2';
+import { href } from 'stencil-router-v2';
 import { getUfeRegistryAsync, UfeRegistry } from '../../services/ufe-registry';
 
 
