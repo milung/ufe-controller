@@ -151,7 +151,10 @@ http_header:field_name(etag) --> "ETag".
         ->  ContentType1 = 'application/octet-stream'
         ;   ContentType1 = ContentType
         ),
-        http_response(Request, codes(ContentType1, Bytes), Headers, Status)
+        (   atom_concat('text/', _, ContentType)
+        ->  http_response(Request, codes(ContentType1, Bytes), Headers, Status)
+        ;   http_response(Request, bytes(ContentType1, Bytes), Headers, Status)
+        )
     ).
  
 
