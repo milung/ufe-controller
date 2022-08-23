@@ -47,6 +47,11 @@ spec:
                     assumed to never expire. To refresh user agents` caches, one needs to change the hash 
                     to a new unique value. 
                   type: string
+                style-relative-paths:
+                  description: |
+                    Array of the relative paths (relative to module-uri), containing the CSS styles
+                    required for this webcomponent module. Preferably styles are embedded in or loaded by 
+                    the module, but some legacy styles requires extra link element
 
                 contextElements: 
                   description: |
