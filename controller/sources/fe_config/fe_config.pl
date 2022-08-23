@@ -306,6 +306,7 @@ resource_config_ctx(_, Cfg, Cfg).
 
 resource_context_config(Resource, Context, CfgIn, CfgOut ) :-
     resource_moduleUri( Resource, ModuleUri),
+    resource_styles( Resource, ModuleUri, Styles),
     (   RolesList = Context.get(roles)
     ->  true
     ;   RolesList = ['*']
@@ -323,6 +324,7 @@ resource_context_config(Resource, Context, CfgIn, CfgOut ) :-
         contextNames: ContextNames,
         element: Context.element,
         load_url: ModuleUri, 
+        styles: Styles,
         roles: RolesList, 
         labels: Labels,
         attributes: Attributes
@@ -332,6 +334,7 @@ resource_context_config(Resource, Context, CfgIn, CfgOut ) :-
 
 resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     resource_moduleUri( Resource, ModuleUri),
+    resource_styles( Resource, ModuleUri, Styles),
     (   Roles = Navigation.get(roles) 
     ->  split_string(Roles, ",; ", ",; ", RolesList)
     ;   RolesList = ['*']
@@ -347,6 +350,7 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
         priority: Priority,
         element: Navigation.element,
         load_url: ModuleUri, 
+        styles: Styles,
         roles: RolesList, 
         labels: Labels,
         attributes: Attributes
@@ -364,7 +368,8 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
 resource_config_preload(Resource, CfgIn, CfgOut) :-
     (   true = Resource.spec.get(preload)
     ->  resource_moduleUri( Resource, ModuleUri),
-        CfgOut = CfgIn.put(preload, [ModuleUri | CfgIn.preload ])
+        resource_styles( Resource, ModuleUri, Styles),
+        CfgOut = CfgIn.put(preload, [ _{ load_url: ModuleUri, styles: Styles} | CfgIn.preload ])
     ;   CfgOut = CfgIn
     ).
 
@@ -386,6 +391,13 @@ resource_moduleUri(Resource, ModuleUri) :-
        ;   atom_string( ModuleUri, Resource.spec.'module-uri')
        )
     ).
+
+resource_styles(Resource, ModuleUri, AbsStyles) :-
+    (  Styles = Resource.spec.get('style-relative-paths')
+    -> true
+    ;   Styles = []
+    ),
+    maplist({ModuleUri}/[R,A] >> uri_resolve(R, ModuleUri, A), Styles, AbsStyles ).
 
 request_header_value(Request, HeaderName, Value) :-
     atom_codes(HeaderName, Codes),

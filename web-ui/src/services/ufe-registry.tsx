@@ -1,11 +1,14 @@
 import { createRouter, Router } from "stencil-router-v2";
 
-export interface UfeElement {
+export interface UfeModule {
+    load_url: string,
+    styles?: string[],
+}
+export interface UfeElement extends UfeModule {
     element: string,
     attributes: Array<{name: string, value: any}>,
     labels?: {[name: string]: string},
-    load_url: string,
-    roles?: string[]
+    roles?: string[],
 }
 
 export interface UfeWebApp extends UfeElement{
@@ -22,7 +25,7 @@ export interface UfeContext extends UfeElement {
 
 
 interface UfeConfiguration {
-    preload: string[];
+    preload: UfeModule[];
     apps: UfeWebApp[];
     contexts: UfeContext[];
     anonymous?: boolean;
@@ -120,7 +123,7 @@ class UfeRegistryImpl implements UfeRegistry{
             }
             UfeRegistryImpl.webConfig  = await response.json();
             let preloads = UfeRegistryImpl.webConfig != null ? UfeRegistryImpl.webConfig.preload : [];
-            preloads.forEach( url => { if(url?.length) import(url);})
+            await impl.preloadDependenciesAsync(preloads)
         }
     }
 
@@ -155,14 +158,33 @@ class UfeRegistryImpl implements UfeRegistry{
         return content;
     }
 
-    async preloadDependenciesAsync(elements: UfeElement[]) {
-        const loads = [...new Set(elements
+    async preloadDependenciesAsync(modules: UfeModule[]) {
+        modules
+            .filter( _ => _.styles?.length )
+           .forEach( this.preloadStyles ); 
+
+        const loads = [...new Set(modules
             .filter(_ => _.load_url?.length)
             .map(_ => _.load_url))]
             .map(_ => import(_) as Promise<{}>); 
         await Promise.all(loads).catch( reason => {
             console.error(`Some of the dependencies failed to load: ${reason}`);
         });
+        
+    }
+
+    preloadStyles(module: UfeModule) {
+        module.styles
+            .forEach( abs => {
+                var head  = document.getElementsByTagName('head')[0];
+                var link  = document.createElement('link');
+                
+                link.rel  = 'stylesheet';
+                link.type = 'text/css';
+                link.href = abs;
+                link.media = 'all';
+                head.appendChild(link);
+            }) 
     }
 
     private matchSelector<T extends UfeElement>(selector: string | { [name: string]: string} | undefined, elements: T[]): T[]  {
