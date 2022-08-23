@@ -52,7 +52,9 @@ spec:
                     Array of the relative paths (relative to module-uri), containing the CSS styles
                     required for this webcomponent module. Preferably styles are embedded in or loaded by 
                     the module, but some legacy styles requires extra link element
-
+                  type: array
+                  items: 
+                    type: string
                 contextElements: 
                   description: |
                     Components that can be displayed in special context, e.g. `ufe-app-shell` for top level
