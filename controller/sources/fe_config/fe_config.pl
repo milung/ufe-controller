@@ -148,7 +148,7 @@ http_header:field_name(etag) --> "ETag".
         
 
         (   atom_length(ContentType, 0) % ensure content type is set
-        ->  ContentType1 = 'application/unknown'
+        ->  ContentType1 = 'application/octet-stream'
         ;   ContentType1 = ContentType
         ),
         http_response(Request, codes(ContentType1, Bytes), Headers, Status)
