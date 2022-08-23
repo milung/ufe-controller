@@ -110,7 +110,7 @@
  :- http_handler(root(modules), logged_http(serve_assets), [prefix]).
  :- http_handler(root('web-components'), logged_http(serve_webcomponents), [prefix]). 
  :- http_handler(root('app-icons'), logged_http(serve_app_icons), [prefix]). 
- :- http_handler(root('favicon.ico'), logged_http(http_reply_file(asset('icon/favicon.ico')), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]), []).
+ :- http_handler(root('favicon.ico'), logged_http(http_reply_file(asset('icon/favicon.ico'), [cache(true)])), [headers([cache_control('public, max-age=31536000, immutable')]), cached_gzip(true)]).
  :- http_handler(root(.), logged_http(serve_spa), [prefix]). 
 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%%

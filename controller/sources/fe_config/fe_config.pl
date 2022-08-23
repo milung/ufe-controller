@@ -114,12 +114,12 @@ http_header:field_name(etag) --> "ETag".
     webcomponent_uri(Request, Uri, Hash),
     request_pass_through_headers(Request, RequestHeaders),
     log(info, fe_config, "Retrieving web component data at ~w", [Uri], []),
-    catch(
+       
+    catch(        
         http_get(
             Uri, Bytes, 
             [
                 to(codes),
-                input_encoding(octet),
                 status_code(Status),
                 header(content_type, ContentType),
                 header(etag, EtagExt),
@@ -145,10 +145,15 @@ http_header:field_name(etag) --> "ETag".
             ( nonvar(LastModifiedExt) -> Headers2 = [last_modified(LastModifiedExt)| Headers1] ; Headers2 = Headers1 ),
             ( nonvar(CacheControlExt) -> Headers = [cache_control(CacheControlExt)| Headers2] ; Headers = Headers2 )
         ),
-        set_stream(current_output, encoding(octet)),
-        http_response(Request, bytes(ContentType, Bytes), Headers, Status)
+        
+
+        %set_stream(current_output, encoding(utf8)),
+        http_response(Request, codes(ContentType, Bytes), Headers, Status)
     ).
  
+
+
+
  %! start_fe_config_controller is det
  % Starts a thread that observes the web component for FE registrations at k8s API
  start_fe_config_controller :-
