@@ -24,29 +24,6 @@ export class UfeDefaultShell {
     this.ufeRegistry = await getUfeRegistryAsync();
   }
 
-  app_render(app) {
-    const appPath = this.ufeRegistry.basePath + app.path;
-    let content = `<${app.element}`;
-    const attributes = [  {name: "base-path", value: appPath }, ...app.attributes  ];
-    attributes.forEach(attribute => {
-      content += ` ${attribute.name}="${attribute.value}"`;
-    });
-    content += `></${app.element}>`;
-    
-    return (
-      <Route 
-        path={new RegExp('(^' + appPath + '\/|^' + appPath + '$)')}
-        render={ () => {
-          if (this.appTitle != app.title) {
-            setTimeout(() => {this.appTitle = app.title}, 0);
-          };
-          let url = app.load_url;
-          if(url?.length) { import(url); }        
-          return <div class="application-area" innerHTML={content}></div>;
-        }} />
-    )
-  }
-
   componentDidLoad() {
     const drawer = this.element.shadowRoot.querySelectorAll('mwc-drawer')[0] as any;
     if (drawer) {

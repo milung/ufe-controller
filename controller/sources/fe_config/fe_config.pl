@@ -145,6 +145,7 @@ http_header:field_name(etag) --> "ETag".
             ( nonvar(LastModifiedExt) -> Headers2 = [last_modified(LastModifiedExt)| Headers1] ; Headers2 = Headers1 ),
             ( nonvar(CacheControlExt) -> Headers = [cache_control(CacheControlExt)| Headers2] ; Headers = Headers2 )
         ),
+        set_stream(current_output, encoding(octet)),
         http_response(Request, bytes(ContentType, Bytes), Headers, Status)
     ).
  

@@ -55,6 +55,17 @@
           If there is match between `Accept-Language` header and this list, then language \c
           of html element is set to such language. In case there is no match then html language \c
           is set to the first language in this list.')]).
+    :- context_variable(favicon, atom, [
+        env('FAVICON_ICO'), 
+        default(['./assets/icon/favicon.ico']), 
+        describe(
+            'link to favicon used as if in <link rel="icon" href="${FAVICON}">')]).
+    :- context_variable(touch_icon, atom, [
+        env('TOUCH_ICON'), 
+        default(['./assets/icon/icon.png']), 
+        describe(
+            'link to favicon used as if in <link rel="apple-touch-icon" hred="${TOUCH_ICON}"')]).
+        
  :- context_variable(background_color, atom, [
      env('MANIFEST_BACKGROUND_COLOR'), 
      default('#16161d'), 
@@ -138,7 +149,10 @@ html_variables(
         'app-title-short' = ShortTitle, 
         description=Description,
         'ufe-shell-context'=ShellContext,
-        'ufe-selector'=Selector
+        'ufe-selector'=Selector, 
+        'favicon'=Favicon,
+        'touch_icon'=Touchicon
+
     ]
 ) :-
     context_variable_value(server:server_base_url, BaseUrl),
@@ -147,6 +161,8 @@ html_variables(
     context_variable_value(accepts_languages, SupportedLangs),
     context_variable_value(webcomponents_selector, Selector),
     context_variable_value(app_shell_context, ShellContext),
+    context_variable_value(favicon, Favicon),
+    context_variable_value(touch_icon, Touchicon),
     request_match_language(Request, SupportedLangs, Language), 
     html_lang_variable(Language, app_title, 'APPLICATION_TITLE', Title),
     html_lang_variable(Language, app_title_short, 'APPLICATION_TITLE_SHORT', ShortTitle),
