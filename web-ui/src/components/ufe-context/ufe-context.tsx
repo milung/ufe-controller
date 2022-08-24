@@ -1,5 +1,5 @@
 import { Component, Host, h, Prop } from '@stencil/core';
-import { getUfeRegistryAsync, UfeRegistry } from '../../services/ufe-registry';
+import { getUfeRegistryAsync, UfeRegistry } from 'ufe-registry';
 
 @Component({
   tag: 'ufe-context',

@@ -1,6 +1,6 @@
 import { Component, Host, h, Prop } from '@stencil/core';
 import { Route, Router } from 'stencil-router-v2';
-import { getUfeRegistryAsync, UfeRegistry } from '../../services/ufe-registry';
+import { getUfeRegistryAsync, UfeRegistry } from 'ufe-registry';
 import '@material/mwc-button';
 
 @Component({

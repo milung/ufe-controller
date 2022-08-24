@@ -3,7 +3,7 @@ import '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
 import '@material/mwc-drawer';
 import { href } from 'stencil-router-v2';
-import { getUfeRegistryAsync, UfeRegistry } from '../../services/ufe-registry';
+import { getUfeRegistryAsync, UfeRegistry } from 'ufe-registry';
 
 
 

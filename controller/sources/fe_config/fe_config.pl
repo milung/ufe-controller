@@ -147,6 +147,8 @@ http_header:field_name(etag) --> "ETag".
         ),
         
 
+        % due to magical handling of encoding in cgi stream it is nearly imposible to bunary
+        % forward stream without strange content-length or reencoding of unicode chars.
         (   atom_length(ContentType, 0) % ensure content type is set
         ->  ContentType1 = 'application/octet-stream'
         ;   ContentType1 = ContentType

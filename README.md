@@ -14,7 +14,7 @@ The project is of educational nature.
 
 ## Installation
 
-The controller is provided as a configurable docker image [milung/ufe-controller](https://hub.docker.com/repository/docker/milung/ufe-controller). It can be deployed into the kubernetes cluster using the manifests in the [./deploy] folder, which also includes `kustomization.yaml` manifest. In the default setup the controller starts to observe WebComponent resources in all namespaces.
+The controller is provided as a configurable docker image [milung/ufe-controller](https://hub.docker.com/repository/docker/milung/ufe-controller). It can be deployed into the kubernetes cluster using the manifests in the [./configs/k8s/kustomize] folder, which also includes `kustomization.yaml` manifest. In the default setup the controller starts to observe WebComponent resources in all namespaces.
 
 After installation you can navigate to `ufe-controller` web ui, e.g. executing the command
 
@@ -52,6 +52,8 @@ spec:
   hash-suffix: v1alpha1      # optional suffix when proxy-ing the module. Changing it value will force 
                              # to refresh cache, and avoids issues with cached versus actual version
 ```
+
+The full specification of custom resource can be seen in [crd.yaml](./configs/k8s/kustomize/crd.yaml)
 
 ## Server Configuration
 
@@ -99,7 +101,7 @@ In the case you want to load content from  other origins, you may need to adapt 
 
 ## Built-in web components
 
-Following web components are available for use in the hosted web components: 
+Following web components are available for use in the hosted web components:
 
 * `ufe-app-router` application router to host the current path's application as  specified by the navifation section in CRD. The attribute `home-component` specifies which component shall be hosted at the root path - defaults to `ufe-application-card`
 
@@ -114,3 +116,48 @@ Following web components are available for use in the hosted web components:
   * `afterAll` - placed after the sequence of the elements being displayed
   * `beforeEach` - placed before each element being displayed
   * `afterEach` - placed after each element being displayed
+
+## Examples for customized shell
+
+See also [ufe-registry](https://www.npmjs.com/package/ufe-registry) package
+
+* Creating custom list of navigable elements and placeholder for displaying the current app:
+
+  ```ts
+  import { Component, Host, h, State, Prop } from '@stencil/core';
+  import { Router } from 'stencil-router-v2';
+  import { getUfeRegistryAsync, UfeRegistry} from "ufe-registry"
+
+  @Component({
+    tag: 'my-shell',
+    styleUrl: 'my-shell.css',
+    shadow: true,
+  })
+  export class MyShell {
+
+    @Prop() router: Router; // use subrouter if your app is hosted in another web-component
+    
+    ufeRegistry: UfeRegistry;
+
+    async componentWillLoad() {
+      this.ufeRegistry = await getUfeRegistryAsync() // wait for UfeRegistry being available
+    }
+    
+    render() {
+      const apps = this.ufeRegistry.navigableApps() // get list of application registered in cluster
+      <my-shell>
+        <navigation-panel>
+            <tabs>
+              {apps.map( app => {
+                const active = false
+                (<app-tab
+                    label={app.title} 
+                    {...this.ufeRegistry.href(app.path, this.router || this.ufeRegistry.router)}
+                    active={app.isActive} ></app-tab>
+                )})}
+            </tabs>    
+        </navigation-panel>
+        <ufe-app-router></ufe-app-router>   // shows the webcomponent of the currently active app
+      </my-shell>
+    }
+  ```
