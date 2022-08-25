@@ -12,15 +12,15 @@ export namespace Components {
     }
     interface UfeApplicationCards {
         "router": Router;
-        "selector": string | {[label:string]: string};
+        "selector": string;
     }
     interface UfeApplicationsList {
         "router": Router;
-        "selector": string | {[label:string]: string};
+        "selector": string;
     }
     interface UfeContext {
         "context": string;
-        "selector": string | {[label:string]: string};
+        "selector": string;
     }
     interface UfeDefaultShell {
     }
@@ -82,15 +82,15 @@ declare namespace LocalJSX {
     }
     interface UfeApplicationCards {
         "router"?: Router;
-        "selector"?: string | {[label:string]: string};
+        "selector"?: string;
     }
     interface UfeApplicationsList {
         "router"?: Router;
-        "selector"?: string | {[label:string]: string};
+        "selector"?: string;
     }
     interface UfeContext {
         "context"?: string;
-        "selector"?: string | {[label:string]: string};
+        "selector"?: string;
     }
     interface UfeDefaultShell {
     }

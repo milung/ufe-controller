@@ -12,7 +12,7 @@ import '@material/mwc-icon';
 export class UfeApplicationsList {
 
   @Prop()
-  selector: string | {[label:string]: string};
+  selector: string ;
 
   @Prop()
   router: Router;
@@ -23,11 +23,8 @@ export class UfeApplicationsList {
     this.ufeRegistry = await getUfeRegistryAsync();
   }
 
-  private getSelectorObject(): {[label:string]: string} {
-     return {};
-  }
   public render() {
-    const apps = this.ufeRegistry.navigableApps( this.getSelectorObject() )
+    const apps = this.ufeRegistry.navigableApps( this.selector )
     return (
       <Host>
         <mwc-list>

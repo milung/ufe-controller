@@ -11,7 +11,7 @@ import '@material/mwc-button';
 export class UfeApplicationCards {
 
   @Prop()
-  selector: string | {[label:string]: string};
+  selector: string ;
 
   @Prop()
   router: Router;
@@ -22,9 +22,7 @@ export class UfeApplicationCards {
     this.ufeRegistry = await getUfeRegistryAsync();
   }
 
-  private getSelectorObject(): {[label:string]: string} {
-     return {};
-  }
+  
 
   app_render(app) {
     const content = this.ufeRegistry.elementHtmlText(app);
@@ -40,7 +38,7 @@ export class UfeApplicationCards {
   }
 
   public render() {
-    const apps = this.ufeRegistry.navigableApps( this.getSelectorObject() )
+    const apps = this.ufeRegistry.navigableApps( this.selector )
     return (
       <Host>
         {apps.map(app => 

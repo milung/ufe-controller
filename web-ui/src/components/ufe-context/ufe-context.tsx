@@ -10,7 +10,7 @@ export class UfeContext {
 
   @Prop() context: string 
 
-  @Prop() selector: string | {[label:string]: string};
+  @Prop() selector: string ;
 
   private ufeRegistry: UfeRegistry;
 
@@ -18,13 +18,11 @@ export class UfeContext {
     this.ufeRegistry = await getUfeRegistryAsync();
   }
 
-  private getSelectorObject(): {[label:string]: string} {
-     return {};
-  }
+  
 
   
   render() {
-    const contextElements = this.ufeRegistry.contextElements( this.context, this.getSelectorObject() );
+    const contextElements = this.ufeRegistry.contextElements( this.context, this.selector );
     this.ufeRegistry.preloadDependenciesAsync(contextElements);
     
     return (
