@@ -19,24 +19,15 @@ export class UfeAppRouter {
   }
 
   app_render(app) {
-    const appPath = this.ufeRegistry.basePath + app.path;
-    let content = `<${app.element}`;
-    const attributes = [  {name: "base-path", value: appPath }, ...app.attributes  ];
-    attributes.forEach(attribute => {
-      content += ` ${attribute.name}="${attribute.value}"`;
-    });
-    content += `></${app.element}>`;
-    
+    const appPath = this.ufeRegistry.basePath + app.path;   
     return (
       <Route 
         path={new RegExp('(^' + appPath + '\/|^' + appPath + '$)')}
         render={ () => {
           if (this.appTitle != app.title) {
             setTimeout(() => {this.appTitle = app.title}, 0);
-          };
-          let url = app.load_url;
-          if(url?.length) { import(url); }        
-          return <div class="application-area" innerHTML={content}></div>;
+          };        
+          return this.ufeRegistry.loadAndRenderElement(app, { "base-path": appPath})
         }} />
     )
   }
