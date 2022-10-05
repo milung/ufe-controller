@@ -351,10 +351,15 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     (   Attributes = Navigation.get(attributes) ->  true;   Attributes = [] ),
     (   Details = Navigation.get(details) ->  true ;   Details = '' ),
     (   Priority = Navigation.get(priority) ->  true;   Priority = 0),
+    (   atom_concat( IconPath, '/', Navigation.path)
+    ->  NavPath =  Navigation.path
+    ;   atom_concat(Navigation.path, '/', Path),
+        IconPath = Navigation.path
+    ),
     App0 = _{
         title: Navigation.title,
         details: Details,
-        path: Navigation.path,
+        path: NavPath,
         priority: Priority,
         element: Navigation.element,
         load_url: ModuleUri, 
@@ -365,12 +370,8 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     },
     (   _ = Navigation.get(icon)
     ->  rebase_uri('app-icons/', Base),
-        atomic_list_concat( [Base, Navigation.path], IconPath0), 
-        (   atom_concat(IconPath0, IconPath, '/')
-        ->  true
-        ;   IconPath0 =IconPath
-        ),
-        App = App0.put(icon, IconPath)
+        atomic_list_concat( [Base, IconPath], IconPath1),         
+        App = App0.put(icon, IconPath1)
     ;   App = App0
     ),
     CfgOut = CfgIn.put(apps, [App | CfgIn.apps ]),
