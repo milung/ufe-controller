@@ -19,10 +19,11 @@ export class UfeAppRouter {
   }
 
   app_render(app) {
-    const appPath = this.ufeRegistry.basePath + app.path;   
+    let appPath = this.ufeRegistry.basePath + app.path;   
+    if(! appPath.endsWith("/")) { appPath = appPath + "/"}
     return (
       <Route 
-        path={new RegExp('(^' + appPath + '\/|^' + appPath + '$)')}
+        path={new RegExp('^' + appPath )}
         render={ () => {
           if (this.appTitle != app.title) {
             setTimeout(() => {this.appTitle = app.title}, 0);

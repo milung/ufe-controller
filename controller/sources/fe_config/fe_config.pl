@@ -365,7 +365,11 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     },
     (   _ = Navigation.get(icon)
     ->  rebase_uri('app-icons/', Base),
-        atomic_list_concat( [Base, Navigation.path], IconPath), 
+        atomic_list_concat( [Base, Navigation.path], IconPath0), 
+        (   atom_concat(IconPath0, IconPath, '/')
+        ->  true
+        ;   IconPath0 =IconPath
+        ),
         App = App0.put(icon, IconPath)
     ;   App = App0
     ),
