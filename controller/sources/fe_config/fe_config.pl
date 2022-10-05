@@ -353,7 +353,7 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     (   Priority = Navigation.get(priority) ->  true;   Priority = 0),
     (   atom_concat( IconPath, '/', Navigation.path)
     ->  NavPath =  Navigation.path
-    ;   atom_concat(Navigation.path, '/', Path),
+    ;   atom_concat(Navigation.path, '/', NavPath),
         IconPath = Navigation.path
     ),
     App0 = _{
