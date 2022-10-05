@@ -22,8 +22,6 @@ export class UfeApplicationCards {
     this.ufeRegistry = await getUfeRegistryAsync();
   }
 
-  
-
   app_render(app) {
     const content = this.ufeRegistry.elementHtmlText(app);
     return (
@@ -53,7 +51,7 @@ export class UfeApplicationCards {
           <div class="text">{app.details}</div>
           <div class="fill-1"></div>
           <div class="actions">
-            <mwc-button label="Otvoriť" {...this.ufeRegistry.href(app.path, this.router)}/>
+            <mwc-button label="Otvoriť" {...this.ufeRegistry.href(app.path.endsWith("/")? app.path : app.path + "/", this.router)}/>
           </div></div>
         </div> 
         )}
