@@ -43,11 +43,15 @@ http_header:field_name(etag) --> "ETag".
      describe('Comma separated list of namespaces in which to look for webcomponents to be served by this instance')
      ]).
  :- context_variable(user_id_header, atom, [
-     env('USER_ID_HEADER'), default('x-forwarded-email'),
+     env('USER_ID_HEADER'), default('x-forwarded-user'),
      describe('incomming request`s header name (lowercase) specifying the user identifier, typically email')
      ]).
+:- context_variable(user_email_header, atom, [
+    env('USER_EMAIL_HEADER'), default('x-forwarded-email'),
+    describe('incomming request`s header name (lowercase) specifying the user identifier, typically email')
+    ]).
  :- context_variable(user_name_header, atom, [
-     env('USER_NAME_HEADER'), default('x-forwarded-user'),
+     env('USER_NAME_HEADER'), default('x-forwarded-preferred-username'),
      describe('incomming request`s header name (lowercase) specifying the user name')
      ]).
  :- context_variable(user_roles_header, atom, [
@@ -426,16 +430,19 @@ request_header_value(Request, HeaderName, Value, Default) :-
 
 user_request_config(Request, Config, UserConfig) :-
     context_variable_value(user_id_header, IdHeader),
+    context_variable_value(user_email_header, EmailHeader),
     context_variable_value(user_name_header, NameHeader),
     context_variable_value(user_roles_header, RolesHeader),
     request_header_value(Request, IdHeader, UserId),
+    request_header_value(Request, EmailHeader, UserEmail),
     request_header_value(Request, NameHeader, UserName, UserId),
     request_header_value(Request, RolesHeader, UserRoles, ''),
     UserConfig = Config.put(_{
         user: _{
             name: UserName,
             id: UserId,
-            roles: UserRoles
+            roles: UserRoles,
+            email: UserEmail
         }
     }),
     !.
