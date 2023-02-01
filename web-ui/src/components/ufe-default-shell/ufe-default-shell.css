@@ -40,3 +40,10 @@ mwc-drawer::shadow div.mdc-drawer-app-content {
 .error-no-modules { margin: 1rem; }
 
 .error-no-modules h1 { color: black}
+
+ufe-context[context="app-bar-tools"] {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+  align-items: center;
+}
