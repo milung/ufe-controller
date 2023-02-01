@@ -6,7 +6,7 @@ const { runInNewContext } = require('vm');
 const proxyApi = new httpProxy.createProxyServer({
     target: {
         host: '127.0.0.1',
-        port: 5252
+        port: 4242
     },
 });
 

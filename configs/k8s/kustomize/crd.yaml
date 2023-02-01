@@ -162,15 +162,19 @@ spec:
                         type: object
                         required:
                         - mime
-                        - data
                         description: |
-                          The optional icon to associate with the navigable component. SVG preferred. 
+                          The optional icon to associate with the navigable component. SVG preferred.  Either
+                          `data` property shall provide base64 encoded icon/image data or `url`` to the image source
+                          shall be specified. The `mime` property must specify proper mime type of the icon/image
                         properties: 
                           mime: 
                             type: string
                           data:
                             type: string
                             format: byte 
+                          url: 
+                            type: string
+                            format: url
                       roles:
                         type: array
                         items: 

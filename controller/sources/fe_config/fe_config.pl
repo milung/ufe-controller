@@ -210,6 +210,10 @@ app_icon(AppPath, ContentType, Bytes, ETag) :-
     member(Navigation, Resource.get(spec/navigation)),
     atom_string(AppPath, Navigation.get(path)),
     ContentType = Navigation.get(icon/mime),
+    app_icon_data(Navigation, Bytes, ETag),
+    !.
+
+app_icon_data(Navigation, Bytes, ETag) :-
     Data0 = Navigation.get(icon/data),
     string_codes(Data0, Codes0),
     remove_ws(Codes0, Data1),
@@ -217,6 +221,10 @@ app_icon(AppPath, ContentType, Bytes, ETag) :-
     string_codes(Data, Data1),
     base64(BytesStr, Data),
     string_codes(BytesStr, Bytes),
+    !.
+app_icon_data(Navigation, Bytes, ETag) :-
+    URL = Navigation.get(icon/url),
+    http_get(URL, Bytes, [ to(codes), header(etag, ETag)]),
     !.
 
 remove_ws([], []).
