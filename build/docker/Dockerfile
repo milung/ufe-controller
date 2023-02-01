@@ -8,6 +8,7 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY web-ui/package.json .
+COPY web-ui/package-lock.json .
 RUN npm install 
 
 COPY web-ui .
