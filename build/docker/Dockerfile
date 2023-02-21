@@ -3,7 +3,7 @@
 ####  Build webui distribution ##############
 #############################################
 FROM node:latest AS webui
-
+ARG PUPPETEER_SKIP_DOWNLOAD=true
 RUN mkdir /app
 WORKDIR /app
 
