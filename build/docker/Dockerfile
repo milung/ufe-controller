@@ -20,7 +20,7 @@ RUN npm run $BUILD_ENV
 ##########################################
 ####  build qsave state ##################
 ##########################################
-FROM swipl AS saved-state
+FROM swipl:9.1.5 AS saved-state
 
 ENV http_port 80
 ENV base_url ''
@@ -43,7 +43,7 @@ RUN swipl -o bootfile -c run.pl
 #############################################
 #### TARGET controller Image ################
 #############################################
-FROM swipl
+FROM swipl:9.1.5
 
 LABEL maintainer="Milan Unger <milan.kvetko@gmail.com>"
 
@@ -51,11 +51,6 @@ WORKDIR /app
 
 COPY --from=saved-state /build/bootfile /app/bootfile
 COPY --from=webui /controller/www /app/www
-
-#dev mode only
-# COPY controller/*.pl ./build/
-# COPY controller/sources ./build/sources/
-# COPY --from=saved-state /build/.packages ./build/.packages/
 
 ENV  HTTP_PORT=7180
 
