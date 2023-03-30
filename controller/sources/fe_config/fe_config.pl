@@ -92,7 +92,7 @@ http_header:field_name(etag) --> "ETag".
      config_cache(_, Etag, LastModifiedStamp), 
      \+ request_match_condition(Request, Etag, LastModifiedStamp, _),
      http_timestamp(LastModifiedStamp, LastModified),  
-     throw(http_reply(not_modified,[cache_control('private, max-age=3600'), etag(Etag), last_modified(LastModified)])).
+     throw(http_reply(not_modified,[cache_control('private, max-age=5'), etag(Etag), last_modified(LastModified)])).
   serve_fe_config(Request) :-
      config_cache(Config, Etag, LastModifiedStamp), 
      user_request_config(Request, Config, UserConfig),

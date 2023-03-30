@@ -217,7 +217,7 @@ serve_spa( Request) :-
     http_response(
         Request, 
         codes('text/html; charset=UTF-8', Text),
-        [ content_security_policy(CspNonce), cache_control('public, max-age=60') ]
+        [ content_security_policy(CspNonce), cache_control('public, max-age=5') ]
     ).
 
 asset_by_language(Asset, Language, Path) :-
