@@ -101,7 +101,7 @@ http_header:field_name(etag) --> "ETag".
          Request, 
          json(UserConfig), 
          [
-             cache_control('private, max-age=3600'), 
+             cache_control('private, max-age=5'), 
              etag(Etag), 
              last_modified(LastModified)
          ], 
