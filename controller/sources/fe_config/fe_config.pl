@@ -128,7 +128,7 @@ http_header:field_name(etag) --> "ETag".
         http_get(
             Uri, _, 
             [
-                to(stream(CacheS))),
+                to(stream(WriteTo)),
                 status_code(Status),
                 header(content_type, ContentType),
                 header(etag, EtagExt),
