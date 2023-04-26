@@ -58,6 +58,10 @@ http_header:field_name(etag) --> "ETag".
      env('USER_ROLES_HEADER'), default('x-forwarded-groups'),
      describe('incomming request`s header name (lowercase) specifying the list of user roles (or groups)')
      ]).
+:- context_variable(forced_refresh_period, number, [
+     env('FORCED_REFRESH_PERIOD_SECONDS'), default(60),
+     describe('Period in seconds, when the configuration is forced to be refreshed independently of the k8s watching status')
+     ]).     
 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -118,12 +122,13 @@ http_header:field_name(etag) --> "ETag".
     webcomponent_uri(Request, Uri, Hash),
     request_pass_through_headers(Request, RequestHeaders),
     log(info, fe_config, "Retrieving web component data at ~w", [Uri], []),
-       
+    new_memory_file(MemFile),
+    open_memory_file(MemFile, write, WriteTo, [encoding(octet)]),
     catch(        
         http_get(
-            Uri, Bytes, 
+            Uri, _, 
             [
-                to(codes),
+                to(stream(CacheS))),
                 status_code(Status),
                 header(content_type, ContentType),
                 header(etag, EtagExt),
@@ -136,11 +141,13 @@ http_header:field_name(etag) --> "ETag".
         Error,
         Status=502
     ),
+    close(WriteTo),
+    
     (   Status = 404
     ->  http_404([], Request)
     ;   between(500, 599, Status)
     ->  format( codes(Msg), 'The web-component gateway returned ~w : Error: ~w', [Status, Error]),
-        http_response(Request, bytes(text/plain, Msg), [],  502)
+        http_response(Request, codes(text/plain, Msg), [],  502)
     ;   (   Hash \= []
         ->  Headers = [cache_control('public, max-age=31536000, immutable'), etag(Hash)]
         ;   % copy caching control headers from the remote provider
@@ -149,7 +156,6 @@ http_header:field_name(etag) --> "ETag".
             ( nonvar(LastModifiedExt) -> Headers2 = [last_modified(LastModifiedExt)| Headers1] ; Headers2 = Headers1 ),
             ( nonvar(CacheControlExt) -> Headers = [cache_control(CacheControlExt)| Headers2] ; Headers = Headers2 )
         ),
-        
 
         % due to magical handling of encoding in cgi stream it is nearly imposible to binary
         % forward stream without strange content-length or reencoding of unicode chars.
@@ -157,9 +163,10 @@ http_header:field_name(etag) --> "ETag".
         ->  ContentType1 = 'application/octet-stream'
         ;   ContentType1 = ContentType
         ),
-        (   atom_concat('text/', _, ContentType)
-        ->  http_response(Request, codes(ContentType1, Bytes), Headers, Status)
-        ;   http_response(Request, bytes(ContentType1, Bytes), Headers, Status)
+        setup_call_cleanup(
+            true,
+            http_response(Request, memory_file(ContentType1, MemFile ), Headers, Status),
+            free_memory_file(MemFile)
         )
     ).
  
@@ -194,6 +201,13 @@ http_header:field_name(etag) --> "ETag".
         [
             timeout(15), 
             heartbeat_callback(http_extra:set_healthy_status(web_component_watcher, "Watching WebComponents", 30))
+        ]),
+    thread_create(
+        k8s_refresh_loop, _, 
+        [ 
+            alias(k8s_refresh_loop), 
+            detached(true), 
+            at_exit(print_message(warning, ufe_controller(refresh_loop_exited)))
         ]),
     print_message(information, ufe_controller(started)), 
     assertz(watcher_exit(Exit)).
@@ -233,7 +247,7 @@ remove_ws([], []).
     -> Out=Tail
     ;  Out = [C|Tail]
     ),
-    remove_ws(In, Tail).    
+    remove_ws(In, Tail).
 
 
 fe_config_update :-
@@ -271,6 +285,43 @@ k8s_observer(added, Resource) :-
     retractall(k8s(Namespace, Name, _)),
     fe_config_update.
 
+k8s_refresh_loop :-
+    context_variable_value(forced_refresh_period, Period),    
+    repeat,
+    sleep(Period),
+    catch(
+        (
+            k8s_refresh_webc_list,
+            print_message(information, ufe_controller(refresh_loop))
+        ), 
+        Error, 
+        (
+            print_message(error, Error),
+            set_unhealthy_status(web_component_watcher, "The watcher failed")
+        )
+    ),
+    fail.
+
+k8s_refresh_webc_list :-
+    k8s_get_resource(
+        'fe.milung.eu', 
+        v1, 
+        webcomponents,
+        _InstanceName, 
+        Resource, 
+        []
+    ),
+    once(( 
+        atom_string(Namespace, Resource.metadata.namespace),
+        atom_string(Name, Resource.metadata.name), 
+        retractall(k8s(Namespace, Name, _)),
+        assertz(k8s(Namespace, Name, Resource))
+    )),
+    fail.
+ k8s_refresh_webc_list :-
+    fe_config_update,
+    !.
+
 :- multifile
     prolog:message//1,
     prolog:error_message//1,
@@ -278,6 +329,10 @@ k8s_observer(added, Resource) :-
 
 prolog:message(ufe_controller(started)) -->
     [ 'uFE Controller thread started watching webcomponent resources'].
+prolog:message(ufe_controller(refresh_loop)) -->
+    [ 'uFE Controller - list of web components refreshed'].
+prolog:message(ufe_controller(refresh_loop_exited)) -->
+    [ 'uFE Controller refresh thread exited'].  
 prolog:message(ufe_controller(already_started)) -->
     [ 'uFE Controller thread already running, stop it first'].
 
