@@ -7,13 +7,13 @@ export const config: Config = {
   globalScript: 'src/global/app.ts',
   taskQueue: 'async',
   sourceMap: true,
+  
   outputTargets: [
     {
       type: 'www',
-      // comment the following line to disable service workers in production
-      serviceWorker: null,
       buildDir: 'modules',
       dir: '../controller/www',
+      serviceWorker: null,
     },
   ],
 };

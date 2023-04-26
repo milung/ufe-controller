@@ -23,7 +23,8 @@ const proxyServer = http.createServer(function (req, res) {
     if ( req.url.match(/\/fe-config/) 
         ||  req.url.match(/\/web-components/)
         ||  req.url.match(/\/app-icons/)
-        ||  req.url.match(/\/avatar/)) {
+        ||  req.url.match(/\/avatar/)
+        ||  req.url.match(/\/manifest.json/) ) {
         console.log('api');
         proxyApi.web(req, res);
     } else {
@@ -31,6 +32,8 @@ const proxyServer = http.createServer(function (req, res) {
         proxyStencil.web(req, res);
     }
 });
+
+
 
 //
 // Listen to the `upgrade` event and proxy the
@@ -42,3 +45,4 @@ proxyServer.on('upgrade', function (req, socket, head) {
 
 console.log('Listen: http://127.0.0.1:5000');
 proxyServer.listen(5000);
+

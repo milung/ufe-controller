@@ -1,8 +1,8 @@
 {
   "name": "{{app-title}}",
-  "short_name": "{{app-title}-short}",
+  "short_name": "{{app-title-short}}",
   "start_url": "{{base-href}}",
-  "display": "standalone",
+  "display": "fullscreen",
   "icons": [{
     "src": "./assets/icon/icon.png",
     "sizes": "512x512",

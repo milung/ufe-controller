@@ -106,6 +106,7 @@
  :- http_handler(root('healtz'), serve_health_check, [prefix]).
  :- http_handler('/healtz', serve_health_check, []).
  :- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
+ :- http_handler(root('sw.mjs'), logged_http(serve_sw), []).
  :- http_handler(root('assets'), logged_http(serve_assets), [prefix]).
  :- http_handler(root(modules), logged_http(serve_assets), [prefix]).
  :- http_handler(root('web-components'), logged_http(serve_webcomponents), [prefix]). 
@@ -200,11 +201,25 @@ serve_manifest( Request) :-
     mustache_from_file(Asset, Variables, Text),
     http_response(
         Request, 
-        codes('application/json; charset=UTF-8', Text),
+        codes('application/json', Text),
         [ cache_control('public, max-age=3153600, immutable') ]
     ).
 
+serve_sw( Request) :-
+    http_reply_file(
+        asset('sw.mjs'), 
+        [
+            headers([cache_control('public, max-age=60, immutable')]), 
+            cached_gzip(true)
+        ], 
+        Request).
+
 serve_spa( Request) :-
+    (   option(path(P), Request),
+        \+ atom_concat(_, '.js', P)
+    ->  true
+    ;   http_404([], Request)
+    ),
     context_variable_value(csp_header, Csp),
     get_nonce(Nonce),
     interpolate_string(Csp, CspNonce, ['NONCE_VALUE'=Nonce], []),
@@ -239,11 +254,3 @@ asset_by_language(Asset, Language, Path) :-
     ;   fail
     ),
     !.
-
-
-
-
-
-
-
-    

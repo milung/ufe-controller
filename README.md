@@ -2,7 +2,7 @@
 
 Implementation of the [Kubernetes Controller] pattern over custom resources specifying front-end web components to be dynamically integrated into a user interface application shell.
 
-THis is experimental concept design of micro-fronts architecture, considering declarative definition of micro-front-ends as part of the kubernetes API custom resource definitions, and leveraging the [web components](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology. This enables to approach development of particular micro-front ends in a similar way as is done with development of the cloud-native micro services.
+This is experimental concept design of micro-fronts architecture, considering declarative definition of micro-front-ends as part of the kubernetes API custom resource definitions, and leveraging the [web components](https://developer.mozilla.org/en-US/docs/Web/Web_Components) technology. This enables to approach development of particular micro-front ends in a similar way as is done with development of the cloud-native micro services.
 
 ## Architecture
 

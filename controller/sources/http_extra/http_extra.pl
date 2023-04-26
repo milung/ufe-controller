@@ -25,6 +25,9 @@ user:file_search_path(http_gzip_cache, asset(cache)).
 
 :- dynamic health_status/1.
 
+:- multifile
+    mime:mime_extension/2.
+
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %! http_response(+Request:list, +Data) is det
@@ -41,7 +44,18 @@ http_response(Request, What) :-
 http_response(Request, Data, HdrExtra) :-
     http_response(Request, Data, HdrExtra, ok).
 
-http_response(Request, Data, HdrExtra,  Code) :-
+http_response(Request, json(Json), HdrExtra,  Code) :-
+    atom_json_dict(String, Json, [as(string)]),
+    http_response(Request, string(application/json, String), HdrExtra,  Code).
+ http_response(Request, codes(Type, Codes), HdrExtra,  Code) :-
+    string_codes(String, Codes),
+    !,
+    http_response(Request, string(Type, String), HdrExtra,  Code).
+ http_response(Request, string(Type, String), HdrExtra,  Code) :-
+    string_bytes(String, Bytes, utf8),
+    !,
+    http_response(Request, bytes(Type, Bytes), HdrExtra,  Code).
+ http_response(Request, Data, HdrExtra,  Code) :-
     option(debug(true), Request),
     setup_call_cleanup(
         ( new_memory_file(MemFile),
@@ -70,6 +84,8 @@ http_response(Request, Data, HdrExtra,  Code) :-
     http_response(Request, codes(Codes, application/json), HdrExtra, Code).
  http_response(_, Data, HdrExtra, Code) :-
     throw(http_reply(Data, [status(Code) | HdrExtra] )).
+
+mime:mime_extension(mjs, 'text/javascript').
 
 %! request_accept_languages(+Request:list, -Languages:list(atom), +Options) is semidet
 %  Unifies list of `Languages` with sorted list of the languages specified in the `Request`
