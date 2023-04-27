@@ -17,6 +17,7 @@
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
+:- use_module(library(http/http_open)).
 :- use_module(library(http/json)).
 :- use_module(library(http/http_json)).
 :- use_module(library(dcg/basics)).
@@ -26,7 +27,9 @@ user:file_search_path(http_gzip_cache, asset(cache)).
 :- dynamic health_status/1.
 
 :- multifile
-    mime:mime_extension/2.
+    mime:mime_extension/2,
+    http:post_data_hook/3,
+    http_header:field_name//1.
 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -77,6 +80,7 @@ http_response(Request, json(Json), HdrExtra,  Code) :-
     ;   http_header:status_number(Code,N) 
     ),
     N < 300,
+    set_stream(current_output, encoding(octet)),
     http_post_data(Data, current_output, [status(Code) | HdrExtra] ),
     !.
  http_response(Request, json(Data), HdrExtra, Code) :-
@@ -286,6 +290,98 @@ health_check_component(_ - Dict) :-
         Now < Validity
     ;   true).
 
+
+http_header:field_name(etag) --> "ETag".
+http:post_data_hook(forward(Uri, ForwardHeaders), Out, HdrExtra) :-
+    !,
+    catch(        
+        http_open(
+            Uri, InputStream, 
+            [
+                status_code(Status),
+                size(Size),
+                header(content_type, ContentTypeExt),
+                header(etag, EtagExt),
+                header(last_modified, LastModifiedExt),
+                header(cache_control, CacheControlExt), 
+                timeout(10) 
+                | ForwardHeaders
+            ]
+        ),
+        Error,
+        Status=502
+    ),
+    (   Status = 404
+    ->  format( codes(Msg), 'Page Not Found at  ~w', [Uri]),
+        http_post_data(codes(text/plain, Msg), Out,  [status(404)])
+    ;   between(500, 599, Status)
+    ->  format( codes(Msg), 'The web-component gateway returned ~w : Error: ~w', [Status, Error]),
+        http_post_data( codes(text/plain, Msg), Out, [status(502)])
+    ;   % copy caching headers from the remote provider
+        (   \+memberchk(etag(_), HdrExtra), 
+            nonvar(EtagExt), 
+            atom_length(EtagExt, Ltag), Ltag > 0 
+        ->   Headers1 = [etag(EtagExt)| HdrExtra] 
+        ;   Headers1 = HdrExtra
+        ),
+        (   \+memberchk(last_modified(_), Headers1), 
+            nonvar(LastModifiedExt), 
+            atom_length(LastModifiedExt, Lmod), Lmod > 0
+        ->  Headers2 = [last_modified(LastModifiedExt)| Headers1]
+        ;   Headers2 = Headers1
+        ),
+        (   \+memberchk(cache_control(_), Headers2), 
+            nonvar(CacheControlExt), 
+            atom_length(CacheControlExt, Lcache), Lcache > 0
+        ->  Headers = [cache_control(CacheControlExt)| Headers2]
+        ;   Headers = Headers2
+        ),        
+        (   atom_length(ContentTypeExt, 0) % ensure content tylpe is set
+        ->  ContentType = 'application/octet-stream'
+        ;   ContentType = ContentTypeExt
+        ),
+        % send headers to output
+        phrase(
+            (
+                http_header:header_fields([status(Status)|Headers],_),
+                http_header:content_type(ContentType),
+                "\r\n"
+            ), 
+            HeaderText
+        ),
+        http_header:send_request_header(Out, HeaderText),
+        % copy data from remote to output
+        set_stream(InputStream, encoding(octet)),
+        stream_property(InputStream, position(PosOld)),
+        stream_position_data(byte_count, PosOld, BytesOld),
+        set_stream(Out, encoding(octet)),
+        (   var(Size) 
+        ->  copy_stream_data(InputStream, Out),
+            stream_property(InputStream, position(PosNew)),
+            stream_position_data(byte_count, PosNew, BytesNew),
+            Size is BytesNew - BytesOld
+        ;   copy_stream_data(InputStream, Out, Size)
+        )
+
+    ).
+
+http:post_data_hook(binary_stream(Stream, ContentType), Out, HdrExtra) :-
+    !,
+    phrase(
+        (
+            http_header:header_fields(HdrExtra,_),
+            http_header:content_type(ContentType),
+            http_header:content_length(Size, Size),
+            "\r\n"
+        ), 
+        HeaderText
+    ),
+    http_header:send_request_header(Out, HeaderText),
+
+    setup_call_cleanup(
+        set_stream(Out, encoding(octet)),
+        copy_stream_data(Stream, Out),
+        set_stream(Out, encoding(octet))).
 
 lang_norm(Lang) -->
     alpha_to_lower(C),

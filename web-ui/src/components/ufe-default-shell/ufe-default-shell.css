@@ -4,6 +4,7 @@
   --mdc-theme-surface: var(--ufe-theme-surface, #fff);
   --mdc-theme-background: var(--ufe-theme-background, #fafafa);
   --mdc-drawer-width: var(--ufe-drawer-width, 256px);
+  --mdc-top-app-bar-fixed-box-shadow: var(--ufe-top-app-bar-fixed-box-shadow, 0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 :host {
@@ -33,6 +34,10 @@ main {
 
 mwc-drawer::shadow div.mdc-drawer-app-content {
   overflow: hidden !important;
+}
+
+mwc-top-app-bar-fixed { 
+  --mdc-top-app-bar-fixed-box-shadow: var(--ufe-top-app-bar-fixed-box-shadow, 0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .application-area{ height: 100%;}

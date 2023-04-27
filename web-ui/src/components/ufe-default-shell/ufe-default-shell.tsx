@@ -42,7 +42,7 @@ export class UfeDefaultShell {
     const base = this.ufeRegistry.basePath;
 
     return (        
-        <mwc-drawer hasHeader type={vw < 800 ? "modal" : "dismissible"} open={vw > 640}>
+        <mwc-drawer hasHeader type={vw < 800 ? "modal" : "dismissible"} >
           <span slot="title">{title}</span>
           {/* <span slot="subtitle">subtitle</span> */}
           <div>

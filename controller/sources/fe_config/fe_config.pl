@@ -31,11 +31,6 @@
 :- initialization(start_fe_config_controller, program).
 :- at_halt(stop_fe_config_controller).
 
-
-:- multifile http_header:field_name//1.
-
-http_header:field_name(etag) --> "ETag".
-
 %%%%%%% CONTEXT VARIABLES %%%%%%%%%%%%%%%%%%%%%%%
 
  :- context_variable(namespaces, list(atom), [
@@ -122,56 +117,12 @@ http_header:field_name(etag) --> "ETag".
     webcomponent_uri(Request, Uri, Hash),
     request_pass_through_headers(Request, RequestHeaders),
     log(info, fe_config, "Retrieving web component data at ~w", [Uri], []),
-    new_memory_file(MemFile),
-    open_memory_file(MemFile, write, WriteTo, [encoding(octet)]),
-    catch(        
-        http_get(
-            Uri, _, 
-            [
-                to(stream(WriteTo)),
-                status_code(Status),
-                header(content_type, ContentType),
-                header(etag, EtagExt),
-                header(last_modified, LastModifiedExt),
-                header(cache_control, CacheControlExt), 
-                timeout(10) 
-                | RequestHeaders
-            ]
-        ),
-        Error,
-        Status=502
+    (   Hash \= []
+    ->  Headers = [cache_control('public, max-age=31536000, immutable'), etag(Hash)]
+    ;   Headers = []
     ),
-    close(WriteTo),
-    
-    (   Status = 404
-    ->  http_404([], Request)
-    ;   between(500, 599, Status)
-    ->  format( codes(Msg), 'The web-component gateway returned ~w : Error: ~w', [Status, Error]),
-        http_response(Request, codes(text/plain, Msg), [],  502)
-    ;   (   Hash \= []
-        ->  Headers = [cache_control('public, max-age=31536000, immutable'), etag(Hash)]
-        ;   % copy caching control headers from the remote provider
-            Headers0 = [],
-            ( nonvar(EtagExt) -> Headers1 = [etag(EtagExt)| Headers0]; Headers1 = Headers0 ),
-            ( nonvar(LastModifiedExt) -> Headers2 = [last_modified(LastModifiedExt)| Headers1] ; Headers2 = Headers1 ),
-            ( nonvar(CacheControlExt) -> Headers = [cache_control(CacheControlExt)| Headers2] ; Headers = Headers2 )
-        ),
-
-        % due to magical handling of encoding in cgi stream it is nearly imposible to binary
-        % forward stream without strange content-length or reencoding of unicode chars.
-        (   atom_length(ContentType, 0) % ensure content type is set
-        ->  ContentType1 = 'application/octet-stream'
-        ;   ContentType1 = ContentType
-        ),
-        setup_call_cleanup(
-            true,
-            http_response(Request, memory_file(ContentType1, MemFile ), Headers, Status),
-            free_memory_file(MemFile)
-        )
-    ).
- 
-
-
+    http_response( Request, forward(Uri, RequestHeaders), Headers, ok ).
+   
 
  %! start_fe_config_controller is det
  % Starts a thread that observes the web component for FE registrations at k8s API
@@ -303,24 +254,40 @@ k8s_refresh_loop :-
     fail.
 
 k8s_refresh_webc_list :-
-    k8s_get_resource(
-        'fe.milung.eu', 
-        v1, 
-        webcomponents,
-        _InstanceName, 
-        Resource, 
-        []
+    findall(
+        Resource,
+        k8s_get_resource(
+            'fe.milung.eu', 
+            v1, 
+            webcomponents,
+            _InstanceName, 
+            Resource, 
+            []
+        ),
+        Resources
     ),
-    once(( 
-        atom_string(Namespace, Resource.metadata.namespace),
-        atom_string(Name, Resource.metadata.name), 
-        retractall(k8s(Namespace, Name, _)),
-        assertz(k8s(Namespace, Name, Resource))
-    )),
-    fail.
- k8s_refresh_webc_list :-
-    fe_config_update,
-    !.
+    refresh_storage(Resources, WasChanged),
+    (   WasChanged
+    ->  fe_config_update
+    ;   true
+    ).  
+
+refresh_storage([], false).
+ refresh_storage([Resource|Resources], WasChanged) :-
+    atom_string(Namespace, Resource.metadata.namespace),
+    atom_string(Name, Resource.metadata.name), 
+    k8s(Namespace, Name, Old),
+    OldVersion = Old.get(metadata/resourceVersion),
+    NewVersion = Resource.get(metadata/resourceVersion),
+    NewVersion = OldVersion,
+    !,
+    refresh_storage(Resources, WasChanged).
+  refresh_storage([Resource|Resources], true) :-
+    atom_string(Namespace, Resource.metadata.namespace),
+    atom_string(Name, Resource.metadata.name),
+    retractall(k8s(Namespace, Name, _)),
+    assertz(k8s(Namespace, Name, Resource)),
+    refresh_storage(Resources, _).
 
 :- multifile
     prolog:message//1,
