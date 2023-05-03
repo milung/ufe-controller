@@ -51,7 +51,7 @@ export class UfeDefaultShell {
           <div slot="appContent">
             <mwc-top-app-bar-fixed>
               <mwc-icon-button icon="menu" slot="navigationIcon" ></mwc-icon-button>
-              <div slot="title">{title}</div>
+              <div slot="title" class="app-title">{title}</div>
               <mwc-icon-button icon="home" slot="actionItems" {...href(base)}></mwc-icon-button>
               <ufe-context context="app-bar-tools" slot="actionItems"></ufe-context>
               <main>

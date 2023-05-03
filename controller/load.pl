@@ -28,6 +28,7 @@
 user:file_search_path(source, project(source)).
 user:file_search_path(asset, html(assets)).
 user:file_search_path(asset, html(modules)).
+user:file_search_path(asset, html(assets/fonts)).
 user:file_search_path(html, www).
 user:file_search_path(user_home, HomeDir) :- getenv('USERPROFILE', HomeDir).
 user:file_search_path(user_home, HomeDir) :- getenv('HOME', HomeDir).

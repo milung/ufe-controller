@@ -106,6 +106,28 @@
          ], 
          ok).
  
+%  serve_fe_config_js(Request) :-
+%      config_cache(_, Etag, LastModifiedStamp), 
+%      \+ request_match_condition(Request, Etag, LastModifiedStamp, _),
+%      http_timestamp(LastModifiedStamp, LastModified),  
+%      throw(http_reply(not_modified,[cache_control('private, max-age=5'), etag(Etag), last_modified(LastModified)])).
+%  serve_fe_config_js(Request) :-
+%      config_cache(Config, Etag, LastModifiedStamp), 
+%      user_request_config(Request, Config, UserConfig),
+%      http_timestamp(LastModifiedStamp, LastModified),
+%      new_memory_file(MemFile),
+%      open_memory_file(MemFile, write, Stream),
+
+%      http_response(
+%          Request, 
+%          json(UserConfig), 
+%          [
+%              cache_control('private, max-age=5'), 
+%              etag(Etag), 
+%              last_modified(LastModified)
+%          ], 
+%          ok).
+
  serve_webcomponents(Request) :-
      webcomponent_uri(Request, _, ETag),
      (   ETag \= []

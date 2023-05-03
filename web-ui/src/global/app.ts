@@ -45,6 +45,11 @@ const registerServiceWorker = async () => {
   }
 };
 
-addEventListener("DOMContentLoaded", registerServiceWorker)
-
+const pwaModeMeta = Array.from(document.getElementsByTagName('meta')).filter( el => el.getAttribute('name') === 'ufe-pwa-mode');
+if (pwaModeMeta?.length > 0 && pwaModeMeta[0].getAttribute('content') === 'pwa') {
+  console.log("PWA is enabled");
+  addEventListener("DOMContentLoaded", registerServiceWorker);
+} else {
+  console.log("PWA is disabled");
+}
 

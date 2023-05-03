@@ -48,8 +48,14 @@ http_response(Request, Data, HdrExtra) :-
     http_response(Request, Data, HdrExtra, ok).
 
 http_response(Request, json(Json), HdrExtra,  Code) :-
-    atom_json_dict(String, Json, [as(string)]),
-    http_response(Request, string(application/json, String), HdrExtra,  Code).
+    new_memory_file(MemFile),
+    open_memory_file(MemFile, write, Handle),
+    json_write_dict(Handle, Json, [width(0)]),
+    close(Handle),
+    setup_call_cleanup(
+        open_memory_file(MemFile, read, RdHandle, [ free_on_close(true), encoding(octet)]),
+        http_response(Request, binary_stream(RdHandle, application/json), HdrExtra,  Code),
+        close(RdHandle)).
  http_response(Request, codes(Type, Codes), HdrExtra,  Code) :-
     string_codes(String, Codes),
     !,
@@ -139,7 +145,7 @@ request_match_condition(Request, CurrentTag, LastModification, Weak) :-
     atom_codes(CurrentTag, Codes),
     !,
     once(request_match_condition(Request, Codes, LastModification, Weak)).
-request_match_condition(Request, CurrentTag, _, false) :-
+ request_match_condition(Request, CurrentTag, _, false) :-
     nonvar(CurrentTag),
     option(if_none_match('*'), Request),
     !,
@@ -154,7 +160,7 @@ request_match_condition(Request, CurrentTag, _, false) :-
     atom_codes(Tags, TagCodes),
     !,
     \+ once(phrase(tag_values_match(CurrentTag, Weak), TagCodes, _)).
-request_match_condition(Request, CurrentTag, _, Weak) :-
+ request_match_condition(Request, CurrentTag, _, Weak) :-
     nonvar(CurrentTag),
     option(if_match(Tags), Request),
     atom_codes(Tags, TagCodes),
@@ -313,10 +319,11 @@ http:post_data_hook(forward(Uri, ForwardHeaders), Out, HdrExtra) :-
     ),
     (   Status = 404
     ->  format( codes(Msg), 'Page Not Found at  ~w', [Uri]),
-        http_post_data(codes(text/plain, Msg), Out,  [status(404)])
+        throw(http_reply(bytes(text/plain, Msg), [status(404)], 404))
     ;   between(500, 599, Status)
     ->  format( codes(Msg), 'The web-component gateway returned ~w : Error: ~w', [Status, Error]),
-        http_post_data( codes(text/plain, Msg), Out, [status(502)])
+        throw(http_reply(bytes(text/plain, Msg), [status(502)], 502))
+        %http_post_data( codes(text/plain, Msg), Out, [status(502)])
     ;   % copy caching headers from the remote provider
         (   \+memberchk(etag(_), HdrExtra), 
             nonvar(EtagExt), 
@@ -371,7 +378,6 @@ http:post_data_hook(binary_stream(Stream, ContentType), Out, HdrExtra) :-
         (
             http_header:header_fields(HdrExtra,_),
             http_header:content_type(ContentType),
-            http_header:content_length(Size, Size),
             "\r\n"
         ), 
         HeaderText
@@ -379,7 +385,9 @@ http:post_data_hook(binary_stream(Stream, ContentType), Out, HdrExtra) :-
     http_header:send_request_header(Out, HeaderText),
 
     setup_call_cleanup(
-        set_stream(Out, encoding(octet)),
+        ( 
+            set_stream(Out, encoding(octet))
+        ),
         copy_stream_data(Stream, Out),
         set_stream(Out, encoding(octet))).
 

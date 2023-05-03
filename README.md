@@ -60,22 +60,28 @@ The full specification of custom resource can be seen in [crd.yaml](./configs/k8
 The backend of the controller can be configured by setting environment variables, below is a list of the currently supported variable:
 
 | Env. Variable | Default Value | Description |
-|- |- |- | 
+|- |- |- |
 |ACCEPTS_LANGUAGES|en|List of semicolon, or comma separated language codes that are supported. If there is match between `Accept-Language` header and this list, then language of html element is set to such language. In case there is no match then html language is set to the first language in this list|
+|APP_ICON_LARGE|./assets/icon/icon.png|link to application icon used in manifest" Shall be 512*512 pixels|
+|APP_ICON_SMALL|./assets/icon/icon.png|link to application icon used in manifest" Shall be 64*64 pixels|
 |APPLICATION_DESCRIPTION||Some detailed description of the applivation to be part of the `index.html` meta. Language specific descriptions are also possible, e.g. APPLICATION_DESCRIPTION_EN_US|
 |APPLICATION_SHELL_CONTEXT|application-shell|context of the dynamic web component that is used to retrieve the application shell - used to build the top-level element in the page body|
 |APPLICATION_TITLE_SHORT|Shell|Short version of the language fallback application title, language specific titles are also possible, e.g. APPLICATION_TITLE_SHORT_EN_US|
 |APPLICATION_TITLE|Application shell|Language fallback application title, language specific titles are also possible, e.g. APPLICATION_TITLE_EN_US|
 |BASE_URL|\\ |Base URL of the server, all absolute links are prefixed with this address|
-|HTTP_CSP_HEADER|default-src 'self';font-src 'self' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/;script-src 'strict-dynamic' 'nonce-{NONCE_VALUE}'; manifest-src 'self' https://github.com/login/oauth/; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/ https://fonts.gstatic.com/;|Content Security Policy header directives for serving the root SPA html page. The placeholder `{NONCE_VALUE}` will be automatically replaced by the random nonce text used to augment `<script>` elements in the html file.|
+|FAVICON_ICO|./assets/icon/favicon.ico|link to favicon used as if in`<link rel="icon" href="${FAVICON}">`|
+|FORCED_REFRESH_PERIOD_SECONDS|60|Period in seconds, when the configuration is forced to be refreshed independently of the k8s watching status|
+|HTTP_CSP_HEADER|default-src 'self'; font-src 'self'; script-src 'strict-dynamic' 'nonce-{NONCE_VALUE}'; worker-src 'self'; manifest-src 'self'; style-src 'self' 'strict-dynamic';|Content Security Policy header directives for serving the root SPA html page. The placeholder `{NONCE_VALUE}` will be automatically replaced by the random nonce text used to augment `<script>` elements in the html file.|
 |HTTP_PORT|80|HTTP port the server is listening on.|
+|MANIFEST_TEMPLATE|manifest.template.json| Path to the manifest.json template file to be used when registering PWA application. The path must be within the scope of the `/app/www` folder and relative to it. The file may contains mustache plaholders.|
 |OBSERVE_NAMESPACES||Comma separated list of namespaces in which to look for webcomponents to be served by this instance|
+|PWA_MODE|disabled|_(experimental)_ if set to "pwa" then service worker will be registered and PWA functionality will be provided by the service worker|
+|TOUCH_ICON|./assets/icon/icon.png|link to favicon used as if in `<link rel="apple-touch-icon" hred="${TOUCH_ICON}"`|
 |USER_ID_HEADER|x-forwarded-email|incomming request`s header name (lowercase) specifying the user identifier, typically email|
 |USER_NAME_HEADER|x-forwarded-user|incomming request`s header name (lowercase) specifying the user name|
 |USER_ROLES_HEADER|x-forwarded-groups|incomming request`s header name (lowercase) specifying the list of user roles (or groups)|
 |WEBCOMPONENTS_SELECTOR||comma separate list of key-value pairs, used to filter WebComponent resources handled by this controller|
-|FAVICON_ICO|./assets/icon/favicon.ico|link to favicon used as if in`<link rel="icon" href="${FAVICON}">`|
-|TOUCH_ICON|./assets/icon/icon.png|link to favicon used as if in `<link rel="apple-touch-icon" hred="${TOUCH_ICON}"`|.
+
 
 The project is of educational nature
 

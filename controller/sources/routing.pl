@@ -55,17 +55,39 @@
           If there is match between `Accept-Language` header and this list, then language \c
           of html element is set to such language. In case there is no match then html language \c
           is set to the first language in this list.')]).
-    :- context_variable(favicon, atom, [
-        env('FAVICON_ICO'), 
-        default(['./assets/icon/favicon.ico']), 
-        describe(
-            'link to favicon used as if in <link rel="icon" href="${FAVICON}">')]).
-    :- context_variable(touch_icon, atom, [
-        env('TOUCH_ICON'), 
-        default(['./assets/icon/icon.png']), 
-        describe(
-            'link to favicon used as if in <link rel="apple-touch-icon" hred="${TOUCH_ICON}"')]).
-        
+ :- context_variable(favicon, atom, [
+    env('FAVICON_ICO'), 
+    default('./assets/icon/favicon.ico'), 
+    describe(
+        'link to favicon used as if in <link rel="icon" href="${FAVICON}">')]).
+ :- context_variable(touch_icon, atom, [
+    env('TOUCH_ICON'), 
+    default('./assets/icon/icon.png'), 
+    describe(
+        'link to favicon used as if in <link rel="apple-touch-icon" hred="${TOUCH_ICON}" Shall be 57x57pixels')]).
+ :- context_variable(app_icon_large, atom, [
+    env('APP_ICON_LARGE'), 
+    default('./assets/icon/icon.png'), 
+    describe(
+        'link to application icon used in manifest" Shall be 512*512 pixels')]).
+ :- context_variable(app_icon_small, atom, [
+    env('APP_ICON_SMALL'), 
+    default('./assets/icon/icon.png'), 
+    describe(
+        'link to application icon used in manifest" Shall be 64*64 pixels')]).
+ :- context_variable(manifest_template, atom, [
+    env('MANIFEST_TEMPLATE'), 
+    default('manifest.template.json'), 
+    describe(
+        'Path to the manifest.json template file to be used when registering PWA \c
+        application. The path must be within the scope of the `/app/www` folder \c
+        and relative to it. The file may contains mustache plaholders.')]).
+ :- context_variable(pwa_mode, atom, [
+    env('PWA_MODE'), 
+    default(disabled), 
+    describe(
+        'If set to "pwa" then service worker will be registered and PWA functionality will be provided by the service worker')]).
+
  :- context_variable(background_color, atom, [
      env('MANIFEST_BACKGROUND_COLOR'), 
      default('#16161d'), 
@@ -80,10 +102,11 @@
      env('HTTP_CSP_HEADER'), 
      default(
         'default-src ''self''; \c
-         font-src ''self'' data: https://fonts.googleapis.com/ https://fonts.gstatic.com/; \c
+         font-src ''self''; \c
          script-src ''strict-dynamic'' ''nonce-{NONCE_VALUE}''; \c
+         worker-src ''self''; \c
          manifest-src ''self'' https://github.com/login/oauth/; \c
-         style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com/ https://fonts.gstatic.com/;'), 
+         style-src ''self'' ''strict-dynamic''; '), 
      describe(
          'Content Security Policy header directives for serving \c
           the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
@@ -108,6 +131,7 @@
  :- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
  :- http_handler(root('sw.mjs'), logged_http(serve_sw), []).
  :- http_handler(root('assets'), logged_http(serve_assets), [prefix]).
+ :- http_handler(root('fonts'), logged_http(serve_assets), [prefix]).
  :- http_handler(root(modules), logged_http(serve_assets), [prefix]).
  :- http_handler(root('web-components'), logged_http(serve_webcomponents), [prefix]). 
  :- http_handler(root('app-icons'), logged_http(serve_app_icons), [prefix]). 
@@ -152,8 +176,10 @@ html_variables(
         'ufe-shell-context'=ShellContext,
         'ufe-selector'=Selector, 
         'favicon'=Favicon,
-        'touch_icon'=Touchicon
-
+        'touch_icon'=Touchicon,
+        'app_icon_large'=AppIconLarge,
+        'app_icon_small'=AppIconSmall,
+        'pwa-mode'=PwaMode
     ]
 ) :-
     context_variable_value(server:server_base_url, BaseUrl),
@@ -164,6 +190,9 @@ html_variables(
     context_variable_value(app_shell_context, ShellContext),
     context_variable_value(favicon, Favicon),
     context_variable_value(touch_icon, Touchicon),
+    context_variable_value(app_icon_large, AppIconLarge),
+    context_variable_value(app_icon_small, AppIconSmall),
+    context_variable_value(pwa_mode, PwaMode),
     request_match_language(Request, SupportedLangs, Language), 
     html_lang_variable(Language, app_title, 'APPLICATION_TITLE', Title),
     html_lang_variable(Language, app_title_short, 'APPLICATION_TITLE_SHORT', ShortTitle),
@@ -194,10 +223,11 @@ nonce_html(_, []) --> eos, !.
     nonce_html(ScriptNonce,  Codes).
 
 serve_manifest( Request) :-
+    context_variable_value(manifest_template, ManifestTemplate),
     html_variables(Request, Variables),
     context_variable_value(accepts_languages, SupportedLangs),
     request_match_language(Request, SupportedLangs, Language),
-    asset_by_language(html('manifest.json'), Language, Asset),
+    asset_by_language(html(ManifestTemplate), Language, Asset),
     mustache_from_file(Asset, Variables, Text),
     http_response(
         Request, 
@@ -209,7 +239,7 @@ serve_sw( Request) :-
     http_reply_file(
         asset('sw.mjs'), 
         [
-            headers([cache_control('public, max-age=60, immutable')]), 
+            headers([cache_control('public, max-age=60')]), 
             cached_gzip(true)
         ], 
         Request).

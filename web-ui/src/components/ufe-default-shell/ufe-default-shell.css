@@ -27,6 +27,10 @@ h1 {
   padding: 0 12px;
 }
 
+app-title {
+  font-weight: 900;
+}
+
 main {
   height: calc(100vh - 64px);
   overflow: auto;
@@ -38,6 +42,10 @@ mwc-drawer::shadow div.mdc-drawer-app-content {
 
 mwc-top-app-bar-fixed { 
   --mdc-top-app-bar-fixed-box-shadow: var(--ufe-top-app-bar-fixed-box-shadow, 0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+mwc-icon-button {
+  --mdc-icon-font: 'Material Icons Outlined';
 }
 
 .application-area{ height: 100%;}

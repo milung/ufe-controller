@@ -14,6 +14,9 @@ export const config: Config = {
       buildDir: 'modules',
       dir: '../controller/www',
       serviceWorker: null,
+      copy: [
+        { src: 'manifest.template.json', dest: 'manifest.template.json' }
+      ]
     },
   ],
 };

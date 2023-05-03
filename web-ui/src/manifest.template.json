@@ -4,10 +4,21 @@
   "start_url": "{{base-href}}",
   "display": "fullscreen",
   "icons": [{
-    "src": "./assets/icon/icon.png",
+    "src": "{{app_icon_large}}",
     "sizes": "512x512",
     "type": "image/png"
-  }],
+  },
+  {
+    "src": "{{app_icon_small}}",
+    "sizes": "64x64",
+    "type": "image/png"
+  },
+  {
+    "src": "{{touch_icon}}",
+    "sizes": "57x57",
+    "type": "image/png"
+  }
+],
   "background_color": "{{background-color}}",
   "theme_color": "{{theme-color}}"
 }
