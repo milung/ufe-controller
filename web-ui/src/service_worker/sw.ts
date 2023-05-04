@@ -3,8 +3,6 @@ import { PrecacheController } from 'workbox-precaching';
 import { Route, RegExpRoute, NavigationRoute, Router } from 'workbox-routing';
 import { NetworkOnly, CacheFirst, StaleWhileRevalidate, NetworkFirst } from 'workbox-strategies';
 import { setCacheNameDetails } from 'workbox-core';
-// import {CacheableResponsePlugin} from 'workbox-cacheable-response';
-
 
 declare const self: ServiceWorkerGlobalScope;
 declare const __WB_MANIFEST: any[];
@@ -38,22 +36,21 @@ self.addEventListener('activate', (event: any) => {
     event.waitUntil(precacheController.activate(event));
 });
 
+
 self.addEventListener('fetch', async (event: any) => {
-    
     const { request } = event;
     
-    console.log(`v54 $request.url}: ${request.mode} : ${request.refferer}}`)
-    if( request.method !== "GET" ||
+    if( request.method !== "GET" ||    
         (request.url as string).includes('/api/') ||
-        (request.url as string).endsWith('manifest.json')
+        (request.url as string).endsWith('manifest.json') ||
+        request.hostname !== self.location.hostname
     ) { return ; }
     
+    console.log(`v55 ${request.url}: ${request.mode} }`);
     return event.respondWith(router.handleRequest({
         event,
         request,
     }));
-
-    
 });
 
  
