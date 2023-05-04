@@ -11,7 +11,8 @@
   {
     "src": "{{app_icon_small}}",
     "sizes": "64x64",
-    "type": "image/png"
+    "type": "image/png",
+    "purpose": "any maskable"
   },
   {
     "src": "{{touch_icon}}",

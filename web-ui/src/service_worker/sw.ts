@@ -43,9 +43,10 @@ self.addEventListener('fetch', async (event: any) => {
     const { request } = event;
     
     console.log(`v54 $request.url}: ${request.mode} : ${request.refferer}}`)
-    if((request.url as string).includes('fonts.') ) {
-        return ;
-    }
+    if( request.method !== "GET" ||
+        (request.url as string).includes('/api/') ||
+        (request.url as string).endsWith('manifest.json')
+    ) { return ; }
     
     return event.respondWith(router.handleRequest({
         event,
