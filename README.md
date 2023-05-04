@@ -76,6 +76,7 @@ The backend of the controller can be configured by setting environment variables
 |MANIFEST_TEMPLATE|manifest.template.json| Path to the manifest.json template file to be used when registering PWA application. The path must be within the scope of the `/app/www` folder and relative to it. The file may contains mustache plaholders.|
 |OBSERVE_NAMESPACES||Comma separated list of namespaces in which to look for webcomponents to be served by this instance|
 |PWA_MODE|disabled|_(experimental)_ if set to "pwa" then service worker will be registered and PWA functionality will be provided by the service worker|
+|SERVICE_WORKER|sw.mjs|Path to the script to be served as `sw.mjs` file when registering PWA application. The path must be within the scope of the `/app/www/modules` folder and relative to it|
 |TOUCH_ICON|./assets/icon/icon.png|link to favicon used as if in `<link rel="apple-touch-icon" hred="${TOUCH_ICON}"`|
 |USER_ID_HEADER|x-forwarded-email|incomming request`s header name (lowercase) specifying the user identifier, typically email|
 |USER_NAME_HEADER|x-forwarded-user|incomming request`s header name (lowercase) specifying the user name|

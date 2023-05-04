@@ -82,6 +82,13 @@
         'Path to the manifest.json template file to be used when registering PWA \c
         application. The path must be within the scope of the `/app/www` folder \c
         and relative to it. The file may contains mustache plaholders.')]).
+    :- context_variable(service_worker, atom, [
+        env('SERVICE_WORKER'), 
+        default('sw.mjs'), 
+        describe(
+            'Path to the script to be served as `sw.mjs` file when registering PWA \c
+            application. The path must be within the scope of the `/app/www/modules` folder \c
+            and relative to it.')]).
  :- context_variable(pwa_mode, atom, [
     env('PWA_MODE'), 
     default(disabled), 
@@ -125,7 +132,8 @@
 
 %%%% ROUTING TABLE
 
- :- http_handler(root('fe-config'), logged_http(serve_fe_config), [prefix]).
+ :- http_handler(root('fe-config'), logged_http(serve_fe_config), []).
+ :- http_handler(root('fe-config.mjs'), logged_http(serve_fe_config_js), []).
  :- http_handler(root('healtz'), serve_health_check, [prefix]).
  :- http_handler('/healtz', serve_health_check, []).
  :- http_handler(root('manifest.json'), logged_http(serve_manifest), []).
@@ -236,8 +244,9 @@ serve_manifest( Request) :-
     ).
 
 serve_sw( Request) :-
+    context_variable_value(service_worker, SwFile), 
     http_reply_file(
-        asset('sw.mjs'), 
+        asset(SwFile), 
         [
             headers([cache_control('public, max-age=60')]), 
             cached_gzip(true)

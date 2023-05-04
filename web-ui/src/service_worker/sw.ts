@@ -25,7 +25,7 @@ router.registerRoute(new Route(
     ({ url }) => url.pathname.endsWith('/fe-config'), new StaleWhileRevalidate(), "GET"));
 router.registerRoute(new RegExpRoute(/\/api\//, new NetworkOnly(), "GET"));
 router.registerRoute(new NavigationRoute(new StaleWhileRevalidate()));
-router.registerRoute(new Route(({url}) => url.hostname.includes("fonts."), new NetworkFirst()));
+router.registerRoute(new RegExpRoute(/\/webcomponents\//, new CacheFirst()));
 router.registerRoute(new RegExpRoute(/.*/, new CacheFirst(), "GET"));
 
 self.addEventListener("install", (event: any) => {
@@ -40,10 +40,9 @@ self.addEventListener('activate', (event: any) => {
 self.addEventListener('fetch', async (event: any) => {
     const { request } = event;
     
-    if( request.method !== "GET" ||    
+    if( request.method !== "GET" ||
         (request.url as string).includes('/api/') ||
-        (request.url as string).endsWith('manifest.json') ||
-        request.hostname !== self.location.hostname
+        ( request.hostname && request.hostname !== self.location.hostname)
     ) { return ; }
     
     console.log(`v55 ${request.url}: ${request.mode} }`);
