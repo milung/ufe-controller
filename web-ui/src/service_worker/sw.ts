@@ -1,7 +1,7 @@
 
 import { PrecacheController } from 'workbox-precaching';
 import { Route, RegExpRoute, NavigationRoute, Router } from 'workbox-routing';
-import { NetworkOnly, CacheFirst, StaleWhileRevalidate, NetworkFirst } from 'workbox-strategies';
+import { NetworkOnly, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { setCacheNameDetails } from 'workbox-core';
 
 declare const self: ServiceWorkerGlobalScope;
