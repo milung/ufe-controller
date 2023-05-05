@@ -16,7 +16,9 @@
     "noUnusedParameters": true,
     "jsx": "react",
     "jsxFactory": "h",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": false,
   },
   "include": [
     "src"

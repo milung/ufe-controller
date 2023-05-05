@@ -1,5 +1,6 @@
 import "../services/ufe-registry" // create reference to apply side-effect
 
+
 export default async () => {
   /// custom elements can be repeatedly registered due to the rebundling in multiple web-components 
   /// (issue with mwc-web components) - this avoids error and only logs the issue

@@ -54,7 +54,7 @@ http_response(Request, json(Json), HdrExtra,  Code) :-
     close(Handle),
     setup_call_cleanup(
         open_memory_file(MemFile, read, RdHandle, [ free_on_close(true), encoding(octet)]),
-        http_response(Request, binary_stream(RdHandle, application/json), HdrExtra,  Code),
+        http_response(Request, binary_stream(application/json, RdHandle), HdrExtra,  Code),
         close(RdHandle)).
  http_response(Request, codes(Type, Codes), HdrExtra,  Code) :-
     string_codes(String, Codes),
@@ -372,7 +372,7 @@ http:post_data_hook(forward(Uri, ForwardHeaders), Out, HdrExtra) :-
 
     ).
 
-http:post_data_hook(binary_stream(Stream, ContentType), Out, HdrExtra) :-
+http:post_data_hook(binary_stream(ContentType, Stream), Out, HdrExtra) :-
     !,
     phrase(
         (

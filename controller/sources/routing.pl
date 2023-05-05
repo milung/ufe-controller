@@ -109,11 +109,11 @@
      env('HTTP_CSP_HEADER'), 
      default(
         'default-src ''self''; \c
-         font-src ''self''; \c
+         font-src ''self'' data: ; \c
          script-src ''strict-dynamic'' ''nonce-{NONCE_VALUE}''; \c
          worker-src ''self''; \c
          manifest-src ''self'' https://github.com/login/oauth/; \c
-         style-src ''self'' ''strict-dynamic''; '), 
+         style-src ''self'' ''nonce-{NONCE_VALUE}''; '), 
      describe(
          'Content Security Policy header directives for serving \c
           the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
@@ -147,8 +147,6 @@
  :- http_handler(root(.), logged_http(serve_spa), [prefix]). 
 
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 
 %%%  PRIVATE PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%  
 get_nonce(Nonce) :-
@@ -189,7 +187,7 @@ html_variables(
         'app_icon_small'=AppIconSmall,
         'pwa-mode'=PwaMode
     ]
-) :-
+ ) :-
     context_variable_value(server:server_base_url, BaseUrl),
     context_variable_value(background_color, BckColor),
     context_variable_value(theme_color, ThemeColor), 
@@ -209,9 +207,9 @@ html_variables(
 
 file_replace_nonce(File, Nonce, Codes) :-
     atomic_list_concat(['<script nonce="', Nonce, '" '], NonceScript),
-    atom_codes(NonceScript, NonceReplace),
+    atom_codes(NonceScript, NonceReplaceScript),
     absolute_file_name(File, Index),
-    phrase_from_file(nonce_html(NonceReplace, Codes),  Index),
+    phrase_from_file(nonce_html(NonceReplaceScript, Codes),  Index),
     !.
 nonce_html(_, []) --> eos, !.
  nonce_html(ScriptNonce, Codes) -->
@@ -245,13 +243,24 @@ serve_manifest( Request) :-
 
 serve_sw( Request) :-
     context_variable_value(service_worker, SwFile), 
-    http_reply_file(
-        asset(SwFile), 
-        [
-            headers([cache_control('public, max-age=60')]), 
-            cached_gzip(true)
-        ], 
-        Request).
+    new_memory_file(MemFile),
+    open_memory_file(MemFile, write, Out),
+    absolute_file_name(asset(SwFile), SwPath),
+    setup_call_cleanup(
+        open(SwPath, read, In),
+        copy_stream_data(In, Out),
+        close(In)
+    ),
+    close(Out),
+    setup_call_cleanup(
+        open_memory_file(MemFile, read, MemIn),
+        http_response(
+            Request, 
+            binary_stream('text/javascript', MemIn),
+            [ cache_control('public, max-age=60') ]
+        ),
+        close(MemIn)
+    ).
 
 serve_spa( Request) :-
     (   option(path(P), Request),
@@ -267,7 +276,8 @@ serve_spa( Request) :-
     asset_by_language(html('index.html'), Language, Asset),
     file_replace_nonce(Asset, Nonce, TemplateCodes),
     html_variables(Request, Variables),
-    phrase(mustache(Variables, TemplateCodes), Text),
+    Variables1 = [ 'csp-nonce'=Nonce | Variables ],
+    phrase(mustache(Variables1, TemplateCodes), Text),
     http_response(
         Request, 
         codes('text/html; charset=UTF-8', Text),

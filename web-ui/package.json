@@ -5,8 +5,9 @@
   "description": "Application Shell for web components",
   "scripts": {
     "build.dev": "stencil build --dev && npm run build.sw",
-    "build.prod": "stencil build --prod && npm run build.sw",
-    "build.sw": "npx webpack build --config ./webpack.sw.js",
+    "build.prod": "stencil build --prod && npm run build.sw.prod",
+    "build.sw": "npx webpack build --mode development --config ./webpack.sw.js",
+    "build.sw.prod": "npx webpack build --mode production --config ./webpack.sw.js",
     "start": "stencil build --dev --watch --serve",
     "test": "stencil test --spec --e2e",
     "test.watch": "stencil test --spec --e2e --watchAll",
@@ -37,7 +38,11 @@
     "@material/mwc-icon-button": "^0.27.0",
     "@material/mwc-list": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
-    "@stencil/core": "^3.0.0",
-    "ufe-registry": "^1.4.2"
+    "@stencil/core": "^3.2.2",
+    "ufe-registry": "^1.4.4",
+    "workbox-core": "^6.5.4",
+    "workbox-precaching": "^6.5.4",
+    "workbox-routing": "^6.5.4",
+    "workbox-strategies": "^6.5.4"
   }
 }

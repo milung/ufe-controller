@@ -1,31 +1,36 @@
-// Generated using webpack-cli https://github.com/webpack/webpack-cli
-
 const path = require('path');
+const webpack = require('webpack');
 const workbox_build = require('workbox-build');
 
 const config = {
-    mode: 'production',
+    mode: 'developement',
+    target: 'webworker',
     entry: () => {
         workbox_build.injectManifest({
             swSrc: './src/service_worker/sw.ts',
             swDest: './dist/sw.ts',
             globDirectory: '../controller/www/',
             globPatterns: [
-              '**/*.js',
-              '**/*.ico',
-              '**/*.css',
-              '**/*.html',
-              '**/*.svg', 
-              '**/*.png'
+                '**/*.js',
+                '**/*.ico',
+                '**/*.css',
+                '**/*.html',
+                '**/*.svg',
+                '**/*.png'
             ],
-          });
-        return './dist/sw.ts'
+        });
+        return { sw: './dist/sw.ts' }
+
     },
     output: {
         path: path.resolve(__dirname, '../controller/www/modules'),
         filename: 'sw.mjs',
     },
-    
+
+    plugins: [
+        new webpack.IgnorePlugin({ resourceRegExp: /^\.\/fe-config.mjs$/}), // injected at runtinme
+    ],
+
     module: {
         rules: [
             {
@@ -44,4 +49,12 @@ const config = {
     },
 };
 
-module.exports = () => {return config;};
+module.exports = (_env, argv) => {
+    if (argv.mode === 'production') {
+        config.mode = 'production';
+    } else {
+        config.devtool = 'source-map';
+    }
+
+    return config;
+};

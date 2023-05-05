@@ -57,8 +57,19 @@
 :- context_variable(forced_refresh_period, number, [
      env('FORCED_REFRESH_PERIOD_SECONDS'), default(60),
      describe('Period in seconds, when the configuration is forced to be refreshed independently of the k8s watching status')
-     ]).     
-
+     ]).
+:- context_variable(sw_version, atom, [
+    env('SW_VERSION'), default('v1'),
+    describe('Version of the service worker, used to force the browser to update the service worker')
+    ]).
+:- context_variable(sw_skip_fetch, list(atom), [
+    env('SW_SKIP_FETCH'), default(''),
+    example('\\/data\\/,fonts\\/.*/.*\\.woff'),
+    describe('Comma separated list of regular expressions against request paths, \c
+        which should not be fetched by the service worker. All paths that contains `/api/` string, \c
+        or request to other domains are implicitly skipped. All other requests, including requests toward web \c
+        components are served with cache-first startegy')
+    ]).
 %%% PUBLIC PREDICATES %%%%%%%%%%%%%%%%%%%%%%%%%%
 
  serve_app_icons(Request) :-
@@ -114,18 +125,22 @@
      throw(http_reply(not_modified,[cache_control('private, max-age=3600'), etag(Etag), last_modified(LastModified)])).
   serve_fe_config_js(Request) :-
      config_cache(Config, Etag, LastModifiedStamp), 
-     user_request_config(Request, Config, UserConfig),
+     user_request_config(Request, Config, UserConfig0),
+     context_variable_value(sw_version, SwVersion),
+     context_variable_value(sw_skip_fetch, SwSkipFetch),
+     UserConfig = UserConfig0.put(_{swVersion: SwVersion, swSkipPaths: SwSkipFetch}),
      http_timestamp(LastModifiedStamp, LastModified),
      new_memory_file(MemFile),
      open_memory_file(MemFile, write, Stream),
-     write(Stream, 'export const feConfig = '),
+     write(Stream, 'self.feConfig = '),
      json_write_dict(Stream, UserConfig, [width(0)]),
+     write(Stream,';'),
      close(Stream),
      setup_call_cleanup(
          open_memory_file(MemFile, read, ReadStream, [free_on_close(true), encoding(octet)]),
          http_response(
             Request, 
-            binary_stream(ReadStream, 'text/javascript'), 
+            binary_stream('text/javascript', ReadStream), 
             [
                 cache_control('private, max-age=5'), 
                 etag(Etag), 
@@ -325,15 +340,15 @@ refresh_storage([], false).
 
 prolog:message(ufe_controller(started)) -->
     [ 'uFE Controller thread started watching webcomponent resources'].
-prolog:message(ufe_controller(refresh_loop)) -->
+ prolog:message(ufe_controller(refresh_loop)) -->
     [ 'uFE Controller - list of web components refreshed'].
-prolog:message(ufe_controller(refresh_loop_exited)) -->
+ prolog:message(ufe_controller(refresh_loop_exited)) -->
     [ 'uFE Controller refresh thread exited'].  
-prolog:message(ufe_controller(already_started)) -->
+ prolog:message(ufe_controller(already_started)) -->
     [ 'uFE Controller thread already running, stop it first'].
 
 pass_through(accept_language).
-pass_through(accept_charset).
+ pass_through(accept_charset).
 
 pass_through_match(HeaderValue, request_header(Header=Value) ) :-
     HeaderValue =.. [ Header, Value],
