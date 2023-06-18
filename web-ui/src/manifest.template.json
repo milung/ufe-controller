@@ -1,25 +1,25 @@
 {
-  "name": "{{app-title}}",
-  "short_name": "{{app-title-short}}",
-  "start_url": "{{base-href}}",
+  "name": "{{.AppTitle}}",
+  "short_name": "{{.AppTitleShort}}",
+  "start_url": "{{.BaseURL}}",
   "display": "fullscreen",
   "icons": [{
-    "src": "{{app_icon_large}}",
+    "src": "{{.AppIconLarge}}",
     "sizes": "512x512",
     "type": "image/png"
   },
   {
-    "src": "{{app_icon_small}}",
+    "src": "{{.AppIconSmall}}",
     "sizes": "64x64",
     "type": "image/png",
     "purpose": "any maskable"
   },
   {
-    "src": "{{touch_icon}}",
+    "src": "{{.TouchIcon}}",
     "sizes": "57x57",
     "type": "image/png"
   }
 ],
-  "background_color": "{{background-color}}",
-  "theme_color": "{{theme-color}}"
+  "background_color": "{{.BackgroundColor}}",
+  "theme_color": "{{.ThemeColor}}"
 }

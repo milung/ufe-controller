@@ -1,25 +1,25 @@
 <!DOCTYPE html>
-<html dir="ltr" lang="{{language}}">
+<html dir="ltr" lang="{{.Language}}">
   <head>
     <meta charset="utf-8">
-    <title>{{app-title}}</title>
-    <base href="{{base-href}}" />
+    <title>{{.AppTitle}}</title>
+    <base href="{{.BaseURL}}" />
 
-    <meta name="Description" content="{{description}}">
+    <meta name="Description" content="{{.Description}}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
     <meta name="theme-color" content="#16161d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta http-equiv="x-ua-compatible" content="IE=Edge">
-    <meta name="ufe-shell-context" content="{{ufe-shell-context}}">
-    <meta name="ufe-selector" content="{{ufe-selector}}">
-    <meta name="ufe-pwa-mode" content="{{pwa-mode}}">
-    <meta name="csp-nonce" content="{{csp-nonce}}" />
+    <meta name="ufe-shell-context" content="{{.MicroFrontendShellContext}}">
+    <meta name="ufe-selector" content="{{.MicroFrontendSelector}}">
+    <meta name="ufe-pwa-mode" content="{{.ProgresiveWebAppMode}}">
+    <meta name="csp-nonce" content="{{.ContentSecurityPolicyNonce}}" />
     <script type="module" src="./modules/app.esm.js"></script>
     <script nomodule src="./modules/app.js"></script>
 
     <link href="./modules/app.css" rel="stylesheet">
-    <link rel="apple-touch-icon" href="{{touch_icon}}">
-    <link rel="icon" href="{{favicon}}">
+    <link rel="apple-touch-icon" href="{{.TouchIcon}}">
+    <link rel="icon" href="{{.FavIcon}}">
     <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
   </head>
   <body>

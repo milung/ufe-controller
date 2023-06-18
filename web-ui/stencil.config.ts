@@ -12,7 +12,7 @@ export const config: Config = {
     {
       type: 'www',
       buildDir: 'modules',
-      dir: '../controller/www',
+      dir: './www',
       serviceWorker: null,
       copy: [
         { src: 'manifest.template.json', dest: 'manifest.template.json' }
