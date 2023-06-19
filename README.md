@@ -2,6 +2,7 @@
 This repo was forked from, is using and is heavily inspired by https://github.com/milung/ufe-controller.
 The goal of this project is to rewrite the UI server part of the ufe-controller to go and separate it from the Backend part.
 WebUI is mainly reused and go server is used to serve the UI.
+The backend for this sample UI is located here: https://github.com/SevcikMichal/microfrontends-controller
 
 ## Micro Frontend Example WebUI Application Shell Configuration
 
