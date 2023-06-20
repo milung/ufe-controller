@@ -4,6 +4,8 @@ The goal of this project is to rewrite the UI server part of the ufe-controller 
 WebUI is mainly reused and go server is used to serve the UI.
 The backend for this sample UI is located here: https://github.com/SevcikMichal/microfrontends-controller
 
+Even though we provide the WebUI with standalone configuration, we currently do not support UI and backend on different hosts. Therefore the UI is loaded as a sidecar with the BE. More information in microfrontends-controller repo.
+
 ## Micro Frontend Example WebUI Application Shell Configuration
 
 The `index.html` page is initially empty and loads the `/fe_config` json object, that describes the applications, contexts, and a basic user identity. The object is exposed at `window.ufeRegistry`, if you need a direct access. Once the page loads, the script decides, which web component to load as an application shell. It will use the built-in web component with the element tag `ufe-default-shell`. It is possible to replace the application shell by configuring the  controller with the environment variable `APPLICATION_SHELL_CONTEXT` and registering `WebComponent` with  such context element. This serves as an example web ui for microfrontend controller and can be replaced with your own UI at any time.

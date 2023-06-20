@@ -1,91 +1,114 @@
-############ PRESETS ##################
-# VERSION INFORMATION
-VERSION=0.2
+# VERSION defines the project version for the bundle.
+# Update this value when you upgrade the version of your project.
+# To re-generate a bundle for another specific version without changing the standard setup, you can:
+# - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
+# - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
+VERSION ?= 0.0.1
 
-# DEPLOYMENT
-DEPLOY_ENVIRONMENT=sample
-DEPLOY_CONTEXT=wac
-DEPLOY_NAMESPACE=micro-fe-sample
+# IMAGE_TAG_BASE defines the docker.io namespace and part of the image name for remote images.
+# This variable is used to construct full image tags for bundle and catalog images.
+#
+# For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
+# michalsevcik.dev/microfrontends-webui-bundle:$VERSION and michalsevcik.dev/microfrontends-webui-catalog:$VERSION.
+IMAGE_TAG_BASE ?= msevcik/microfrontends-webui
 
-# DIRECTORIES
-BUILD_DIR=.build
+# Image URL to use all building/pushing image targets
+IMG ?= $(IMAGE_TAG_BASE):$(VERSION)
 
-# IMAGES 
-CONTROLLER_TAG=milung/ufe-controller
-PROFILES_UIC_TAG=milung/profile-uic
-
-# SOURCES
-
-rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
-WEB_SOURCES=$(call rwildcard, web-ui/src, *) web-ui/package.json web-ui/stencil.config.ts
-CONTROLLER_SOURCES=$(call rwildcard, controller, *.pl)
-DOCKERFILE=./build/docker/Dockerfile
-
-
-##########  GOALS #####################
-
-.PHONY: deploy dev-server
-
-controller.push: controller.image
-	docker push $(CONTROLLER_TAG)
-	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/controller.push
-
-controller.image:  $(DOCKERFILE) $(CONTROLLER_SOURCES) $(WEB_SOURCES) | $(BUILD_DIR)
-	docker build \
-		-t $(CONTROLLER_TAG) \
-		--build-arg BUILD_ENV=build.prod \
-		--label "version=$(VERSION)"  \
-		--label "build-mode=production"  \
-		--label "build-timestamp=$(TIMESTAMP)" \
-		-f $(DOCKERFILE) \
-		.
-	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/controller.image
-
-dev.controller.push: dev.controller.image
-	docker push $(CONTROLLER_TAG):dev
-	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG) > .build/dev.controller.push
-
-dev.controller.image: $(DOCKERFILE) $(CONTROLLER_SOURCES) $(WEB_SOURCES) | $(BUILD_DIR)
-	docker build -t $(CONTROLLER_TAG):dev --build-arg BUILD_ENV=build.dev -f $(DOCKERFILE) .
-	@docker inspect --format='{{.ID}}' $(CONTROLLER_TAG):dev > .build/dev.controller.image
-
-profiles.push: profiles.image
-	docker push $(PROFILES_UIC_TAG)
-	@docker inspect --format='{{.ID}}' $(PROFILES_UIC_TAG) > .build/profiles.push
-
-profiles.image:
-	docker build -t $(PROFILES_UIC_TAG) examples/profile-ui
-	@docker inspect --format='{{.ID}}' $(PROFILES_UIC_TAG) > .build/profiles.image
-
-deploy: controller.push profiles.push
-	$(KUSTOMIZE) build kustomize/environments/overlays/$(DEPLOY_ENVIRONMENT) | $(KUBECTL) apply -f -
-	
-
-.build:
-	@$(MAKE_PATH)  .build
-
-dev-server:
-	kubectl port-forward -n ingress-nginx service/ingress-nginx-controller  5252:80 
-	node web-ui\dev-utils\dev-proxy.js 
-	cd web-ui; npm run start
-
-vpath %.image .build
-vpath %.push .build
-vpath %.pl controller
-vpath %.pl controller/sources
-vpath %.pl controller/.packages
-
-############## TOOLS ##################
-
-KUSTOMIZE=kustomize
-KUBECTL=kubectl --context $(DEPLOY_CONTEXT) --namespace $(DEPLOY_NAMESPACE) 
-POWERSHELL = pwsh -noprofile -command 
-
-
-ifeq ($(OS),Windows_NT)
- MAKE_PATH = $(POWERSHELL)  $$null = new-item -ItemType "directory" -Force -Path)
- TIMESTAMP=  $(shell $(POWERSHELL) "Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%SZ'" )
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
 else
- MAKE_PATH = mkdir -p 
- TIMESTAMP = $(shell date --iso=seconds)
+GOBIN=$(shell go env GOBIN)
 endif
+
+# Setting SHELL to bash allows bash commands to be executed by recipes.
+# Options are set to exit when a recipe line exits non-zero or a piped command fails.
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
+.PHONY: all
+all: build
+
+##@ General
+
+# The help target prints out all targets with their descriptions organized
+# beneath their categories. The categories are represented by '##@' and the
+# target descriptions by '##'. The awk commands is responsible for reading the
+# entire set of makefiles included in this invocation, looking for lines of the
+# file as xyz: ## something, and then pretty-format the target and help. Then,
+# if there's a line with ##@ something, that gets pretty-printed as a category.
+# More info on the usage of ANSI control characters for terminal formatting:
+# https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+# More info on the awk command:
+# http://linuxcommand.org/lc3_adv_awk.php
+
+.PHONY: help
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Development
+
+.PHONY: fmt
+fmt: ## Run go fmt against code.
+	go fmt ./...
+
+.PHONY: vet
+vet: ## Run go vet against code.
+	go vet ./...
+
+.PHONY: test
+test: fmt vet ## Run tests.
+	go test ./... -coverprofile cover.out
+
+##@ Build
+
+.PHONY: build
+build: fmt vet ## Build webui binary.
+	go build -o bin/webui main.go
+
+.PHONY: run
+run: fmt vet ## Run a controller from your host.
+	go run ./main.go
+
+# If you wish built the webui image targeting other platforms you can use the --platform flag.
+# (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.
+# More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+.PHONY: docker-build
+docker-build: test ## Build docker image with the webui.
+	docker build -t ${IMG} .
+
+.PHONY: docker-push
+docker-push: ## Push docker image with the webui.
+	docker push ${IMG}
+
+# PLATFORMS defines the target platforms for  the webui image be build to provide support to multiple
+# architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
+# - able to use docker buildx . More info: https://docs.docker.com/build/buildx/
+# - have enable BuildKit, More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+# - be able to push the image for your registry (i.e. if you do not inform a valid value via IMG=<myregistry/image:<tag>> then the export will fail)
+# To properly provided solutions that supports more than one platform you should use this option.
+PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
+.PHONY: docker-buildx
+docker-buildx: test ## Build and push docker image for the webui for cross-platform support
+	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+	- docker buildx create --name project-v3-builder
+	docker buildx use project-v3-builder
+	- docker buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
+	- docker buildx rm project-v3-builder
+	rm Dockerfile.cross
+
+##@ Deployment
+
+ifndef ignore-not-found
+  ignore-not-found = false
+endif
+
+.PHONY: deploy
+deploy: ## Deploy webui to the K8s cluster specified in ~/.kube/config.
+	kubectl apply -k config
+
+.PHONY: undeploy
+undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+	kubectl delete -k config

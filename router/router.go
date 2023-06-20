@@ -24,5 +24,7 @@ func CreateRouter() *mux.Router {
 	router.PathPrefix("/fonts").HandlerFunc(server.ServeFile).Methods("GET")
 	router.PathPrefix("/favicon.ico").HandlerFunc(server.ServeFile).Methods("GET")
 
+	router.PathPrefix("/").HandlerFunc(server.PassThrough).Methods("GET")
+
 	return router
 }

@@ -1,0 +1,28 @@
+ apiVersion: apps/v1
+ kind: Deployment
+ metadata:
+   name: microfrontends-webui
+ spec:
+   replicas: 1
+   selector:
+       matchLabels:
+         pod: microfrontends-webui-label
+   template:
+       metadata:
+         labels:
+           pod: microfrontends-webui-label
+       spec:
+         containers:
+         - name: microfrontends-webui-container
+           image: msevcik/microfrontends-webui:0.0.1
+           imagePullPolicy: Always
+           ports:
+           - name: webapi-port
+             containerPort: 8082
+           resources:
+             requests:
+               memory: "32Mi"
+               cpu: "0.1"
+             limits:
+               memory: "128Mi"
+               cpu: "0.3"
