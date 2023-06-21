@@ -32,6 +32,7 @@ RUN go mod download
 COPY model/ model/
 COPY router/ router/
 COPY server/ server/
+COPY configuration/ configuration/
 COPY main.go main.go
 
 # Build

@@ -2,7 +2,6 @@ package server
 
 import (
 	"html/template"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SevcikMichal/microfrontends-webui/configuration"
 	"github.com/SevcikMichal/microfrontends-webui/model"
 )
 
@@ -34,7 +34,7 @@ func ServeSinglePageApplication(w http.ResponseWriter, r *http.Request) {
 	pageData := &model.TemplateData{
 		Language:                   "en",
 		AppTitle:                   "Micro Frontends WebUI",
-		BaseURL:                    "/microfrontends-ui/",
+		BaseURL:                    configuration.GetBaseURL(),
 		Description:                "Micro Frontends WebUI",
 		MicroFrontendShellContext:  "application-shell",
 		MicroFrontendSelector:      "",
@@ -107,7 +107,7 @@ func ServeManifestJson(w http.ResponseWriter, r *http.Request) {
 	pageData := &model.TemplateData{
 		AppTitle:        "Micro Frontends WebUI",
 		AppTitleShort:   "µFE",
-		BaseURL:         "/microfrontends-ui/",
+		BaseURL:         configuration.GetBaseURL(),
 		AppIconLarge:    "",
 		AppIconSmall:    "",
 		TouchIcon:       "",
@@ -118,39 +118,5 @@ func ServeManifestJson(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.Execute(w, pageData)
 	if err != nil {
 		log.Panic(err)
-	}
-}
-
-func PassThrough(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request to get web component started.")
-	path := r.URL.Path
-
-	req, err := http.NewRequest("GET", "http://localhost:80"+path, r.Body)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	log.Println("Proxying request to the module.", "Resolved URL:", "http://localhost:80"+path)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
-
-	copyHeaders(w.Header(), resp.Header)
-	w.Header().Set("Content-Type", "application/javascript")
-
-	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
-}
-
-func copyHeaders(dst, src http.Header) {
-	for key, values := range src {
-		dst.Set(key, strings.Join(values, ", "))
 	}
 }
