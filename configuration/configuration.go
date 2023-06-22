@@ -32,8 +32,14 @@ const (
 	WebcomponentsSelector      = "WEBCOMPONENTS_SELECTOR"
 )
 
-func GetAcceptsLanguages() string {
-	return os.Getenv(AcceptsLanguages)
+func GetAcceptsLanguages() []string {
+	value, ok := os.LookupEnv(AcceptsLanguages)
+
+	if ok {
+		return strings.Split(value, ",")
+	}
+
+	return []string{"en"}
 }
 
 func GetAppIconLarge() string {

@@ -46,7 +46,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o we
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
-COPY --from=builder /workspace/web-ui-server .
+COPY --from=builder /workspace/web-ui-server web-ui-server
 COPY --from=webui /app/www/ /web-ui/www/
 USER 65532:65532
 

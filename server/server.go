@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -14,7 +13,13 @@ import (
 )
 
 func ServeSinglePageApplication(w http.ResponseWriter, r *http.Request) {
-	data, err := os.ReadFile("../web-ui/www/index.html")
+	language, _ := requestMatchLanguage(r, configuration.GetAcceptsLanguages())
+
+	htmlToFind := "index." + language + ".html"
+	matches := getAllPossibleFiles(htmlToFind)
+	bestFit := getFirstMatchingFile("web-ui/www", matches)
+
+	data, err := os.ReadFile(bestFit)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Println("index.html does not exist!")
@@ -53,40 +58,29 @@ func ServeSinglePageApplication(w http.ResponseWriter, r *http.Request) {
 func ServeFile(w http.ResponseWriter, r *http.Request) {
 	fileName := strings.Split(r.URL.Path, "/")[len(strings.Split(r.URL.Path, "/"))-1]
 
-	var matches []string
-	err := filepath.Walk("../web-ui/www", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			if fileName == info.Name() {
-				matches = append(matches, path)
-			}
-		}
-		return nil
-	})
+	matches := getAllPossibleFiles(fileName)
+	bestFit := getFirstMatchingFile("web-ui/www", matches)
 
+	file, err := os.Open(bestFit)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Println("File" + fileName + "does not exist!")
+			log.Println("index.html does not exist!")
 			http.NotFound(w, r)
 			return
 		}
 		log.Panic(err)
 	}
 
-	if matches == nil {
-		log.Println("File" + fileName + "does not exist!")
-		http.NotFound(w, r)
-		return
-	}
-
-	file, _ := os.Open(matches[0])
 	http.ServeContent(w, r, matches[0], time.Now(), file)
 }
 
 func ServeManifestJson(w http.ResponseWriter, r *http.Request) {
-	data, err := os.ReadFile("../web-ui/www/manifest.template.json")
+	language, _ := requestMatchLanguage(r, configuration.GetAcceptsLanguages())
+	htmlToFind := "index." + language + ".html"
+	matches := getAllPossibleFiles(htmlToFind)
+	bestFit := getFirstMatchingFile("web-ui/www", matches)
+
+	data, err := os.ReadFile(bestFit)
 
 	if err != nil {
 		if os.IsNotExist(err) {
