@@ -2,19 +2,19 @@
 
 :-  prolog_load_context(directory, Dir), 
     asserta(user:file_search_path(project, Dir)),
-    asserta(user:file_search_path(source, project(sources))).  
+    asserta(user:file_search_path(source, project(sources))).
 
 %  Project load search paths
 :-  asserta(user:file_search_path(cliroot, project('.'))).
 
 :- initialization(
     (     
-        retractall(file_search_path(cliroot, _)),  
+        retractall(file_search_path(cliroot, _)),
         retractall(file_search_path(project, _)),
         % retractall(file_search_path(foreign, _)),
         current_prolog_flag(executable, ExePath),
         atomic_list_concat(Segments, '\\', ExePath),
-        atomic_list_concat(Segments, '/', PosixPath),        
+        atomic_list_concat(Segments, '/', PosixPath),
         directory_file_path(Dir, _, PosixPath),
         (
             directory_file_path(CliRoot, bin, Dir)
@@ -25,6 +25,7 @@
         assert(user:file_search_path(project, cliroot('.')))
     ),
     restore_state).
+
 user:file_search_path(source, project(source)).
 user:file_search_path(asset, html(assets)).
 user:file_search_path(asset, html(modules)).
@@ -37,8 +38,23 @@ user:file_search_path(config, './config').
 user:file_search_path(config, user_home('.document-structure')).
 user:file_search_path(config, cliroot(config)).
 % user:file_search_path(foreign, cliroot(bin)).
-
+%:- asserta(user:file_search_path(library, project(lib))).
 :- set_prolog_flag(encoding, utf8).
+
+%  Workaround for double Content-Length header which is not passing through 
+% the envoy proxy header validator
+:- multifile http_header:reply_header//3.
+
+http_header:reply_header(cgi_data(Size), HdrExtra, Code) -->
+    http_header:vstatus(ok, Code, HdrExtra),
+    http_header:date(now),
+    http_header:header_fields(HdrExtra, CLen),
+    (   { var(CLen)}
+    ->  http_header:content_length(Size, CLen)
+    ;   ""
+    ),
+    "\r\n",
+    !. 
 
 % standard modules for  project
 :- use_module(library(settings)).

@@ -82,13 +82,13 @@
         'Path to the manifest.json template file to be used when registering PWA \c
         application. The path must be within the scope of the `/app/www` folder \c
         and relative to it. The file may contains mustache plaholders.')]).
-    :- context_variable(service_worker, atom, [
-        env('SERVICE_WORKER'), 
-        default('sw.mjs'), 
-        describe(
-            'Path to the script to be served as `sw.mjs` file when registering PWA \c
-            application. The path must be within the scope of the `/app/www/modules` folder \c
-            and relative to it.')]).
+ :- context_variable(service_worker, atom, [
+    env('SERVICE_WORKER'), 
+    default('sw.mjs'), 
+    describe(
+        'Path to the script to be served as `sw.mjs` file when registering PWA \c
+        application. The path must be within the scope of the `/app/www/modules` folder \c
+        and relative to it.')]).
  :- context_variable(pwa_mode, atom, [
     env('PWA_MODE'), 
     default(disabled), 
@@ -214,7 +214,7 @@ file_replace_nonce(File, Nonce, Codes) :-
 nonce_html(_, []) --> eos, !.
  nonce_html(ScriptNonce, Codes) -->
     "<script>",
-    {   append(ScriptNonce, [ 0'> ], SN1),        
+    {   append(ScriptNonce, [ 0'> ], SN1),
         append(SN1, Rest, Codes) 
     },
     !,
