@@ -113,7 +113,7 @@
          script-src ''strict-dynamic'' ''nonce-{NONCE_VALUE}''; \c
          worker-src ''self''; \c
          manifest-src ''self'' https://github.com/login/oauth/; \c
-         style-src ''self'' ''nonce-{NONCE_VALUE}''; '), 
+         style-src ''self'' ''unsafe-inline'' ; '), 
      describe(
          'Content Security Policy header directives for serving \c
           the root SPA html page. The placeholder `{NONCE_VALUE}` will be \c
