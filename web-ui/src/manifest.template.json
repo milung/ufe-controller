@@ -3,6 +3,7 @@
   "short_name": "{{app-title-short}}",
   "start_url": "{{base-href}}",
   "display": "fullscreen",
+  "display_override": ["window-controls-overlay"],
   "icons": [{
     "src": "{{app_icon_large}}",
     "sizes": "512x512",
