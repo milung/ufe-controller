@@ -33,16 +33,34 @@ export class UfeContext {
     const contextElements = this.ufeRegistry.contextElements( this.context, this.selector );
     this.ufeRegistry.preloadDependenciesAsync(contextElements);
     
+    
     return (
       
       <Host>
         <slot name="beforeALl"></slot>
-        {contextElements.map( el => { 
-          const element = this.ufeRegistry.loadAndRenderElement(el, Object.assign({}, this.extraAttributes, this.data));
+          {contextElements.map( el => { 
+            const attr = Object.assign(
+              {},
+              this.extraAttributes,
+              el.attributes.reduce(
+                  (acc, a) => {
+                      acc[a.name] = a.value;
+                      return acc
+                  }, {} as {
+                      [name: string]: any
+                  })
+          );
+          
           return (
             <context-item>
               <slot name="before-each"></slot>
-              { element }
+              <el.element {...attr} ref={ (_ => {
+                if (_) {
+                  for (let key in this.data) {
+                    _[key] = this.data[key];
+                  }
+                }
+              })}></el.element>
               <slot name="after-each"></slot>
             </context-item>
           )
