@@ -77,7 +77,7 @@ spec:
                         example: my-element-name
                       priority:
                         description: |
-                          The priority of the navigation entry in lists. The entries with higher priority are  
+                          The priority of the entry in lists. The entries with higher priority are  
                           displayed before entries with the lower proorities, if there is ordering 
                           supported by the list. Default priority is 0
                         type: number

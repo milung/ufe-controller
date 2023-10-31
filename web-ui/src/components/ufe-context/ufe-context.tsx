@@ -15,7 +15,7 @@ export class UfeContext {
   @Prop() selector: string ;
 
   // attributes will be propagated to rendered web components
-  @Prop() attributes: { [key: string]: string}
+  @Prop({ attribute: "extra-attributes"}) extraAttributes: { [key: string]: string}
 
   // any data, 
   @Prop() data: {
@@ -38,7 +38,7 @@ export class UfeContext {
       <Host>
         <slot name="beforeALl"></slot>
         {contextElements.map( el => { 
-          const element = this.ufeRegistry.loadAndRenderElement(el, Object.assign({}, this.attributes, this.data));
+          const element = this.ufeRegistry.loadAndRenderElement(el, Object.assign({}, this.extraAttributes, this.data));
           return (
             <context-item>
               <slot name="before-each"></slot>
