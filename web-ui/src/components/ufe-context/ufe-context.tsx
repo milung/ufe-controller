@@ -17,8 +17,10 @@ export class UfeContext {
   // attributes will be propagated to rendered web components
   @Prop() attributes: { [key: string]: string}
 
-  // if set, then the "data" property will be assigned to the rendered components
-  @Prop() data: any;
+  // any data, 
+  @Prop() data: {
+    [key: string]: any
+  };
 
   private ufeRegistry: UfeRegistry;
 
@@ -36,11 +38,11 @@ export class UfeContext {
       <Host>
         <slot name="beforeALl"></slot>
         {contextElements.map( el => { 
-          el.attributes = Object.assign({}, el.attributes, this.attributes);
+          const element = this.ufeRegistry.loadAndRenderElement(el, Object.assign({}, this.attributes, this.data));
           return (
             <context-item>
               <slot name="before-each"></slot>
-              <span innerHTML={this.ufeRegistry.elementHtmlText(el)}></span>
+              { element }
               <slot name="after-each"></slot>
             </context-item>
           )
