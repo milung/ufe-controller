@@ -281,7 +281,7 @@ k8s_observer(added, Resource) :-
     fe_config_update.
 
 k8s_refresh_loop :-
-    context_variable_value(forced_refresh_period, Period),    
+    context_variable_value(forced_refresh_period, Period),
     repeat,
     sleep(Period),
     catch(
@@ -422,7 +422,7 @@ resource_navigation_config(Resource, Navigation, CfgIn, CfgOut ) :-
     resource_moduleUri( Resource, ModuleUri),
     resource_styles( Resource, ModuleUri, Styles),
     (   Roles = Navigation.get(roles) 
-    ->  split_string(Roles, ",; ", ",; ", RolesList)
+    ->  convlist([S,A] >> atom_string(A,S), Roles, RolesList)
     ;   RolesList = ['*']
     ),
     (   Labels = Resource.metadata.get(labels) ->  true ;   Labels = []),
@@ -502,12 +502,12 @@ request_header_value(Request, HeaderName, Value, Default) :-
     -> true
     ;  Value = Default.
 
-user_request_config(Request, Config, UserConfig) :-
+user_request_config(Request, Config, Filtered) :-
     context_variable_value(user_id_header, IdHeader),
     context_variable_value(user_email_header, EmailHeader),
     context_variable_value(user_name_header, NameHeader),
     context_variable_value(user_roles_header, RolesHeader),
-    request_header_value(Request, IdHeader, UserId),
+    request_header_value(Request, IdHeader, UserId, unknown),
     request_header_value(Request, EmailHeader, UserEmail),
     request_header_value(Request, NameHeader, UserName, UserId),
     request_header_value(Request, RolesHeader, UserRoles, ''),
@@ -519,12 +519,36 @@ user_request_config(Request, Config, UserConfig) :-
             email: UserEmail
         }
     }),
-    !.
- user_request_config(_, Config, UserConfig) :-
+    split_string(UserRoles, ',', ' ', RolesListS),
+    convlist([S,A] >> atom_string(A,S), RolesListS, RolesList),
+    filter_by_roles(UserConfig, RolesList, Filtered), !.
+
+ user_request_config(_, Config, Filtered) :-
     UserConfig = Config.put(_{
         anonymous: true
-    }).
+    }),
+    filter_by_roles(UserConfig, [ anonymous ], Filtered), !.
 
+filter_by_roles(Config, UserRoles, Filtered) :-
+    is_dict(Config),
+    Contexts = Config.get(contexts),
+    filter_by_roles(Contexts, UserRoles, FilteredContexts),
+    Filtered0 = Config.put(contexts, FilteredContexts),
+    Navigations = Filtered0.get(apps),
+    filter_by_roles(Navigations, UserRoles, FilteredNavigations),
+    Filtered = Filtered0.put(apps, FilteredNavigations).
+ filter_by_roles([], _, []).
+    filter_by_roles([Ctx|Contexts], UserRoles, [Ctx|FilteredContexts]) :-
+        CtxRoles = Ctx.get(roles),
+        (   memberchk('*', CtxRoles)
+        ->  true
+        ;   intersection(CtxRoles, UserRoles, Common),
+            Common \= []
+        ),
+        !,
+        filter_by_roles(Contexts, UserRoles, FilteredContexts).
+  filter_by_roles([_|Contexts], UserRoles, FilteredContexts) :-
+        filter_by_roles(Contexts, UserRoles, FilteredContexts).
     
 webcomponent_uri(Request, Uri, Hash) :-
     option(path_info(Path), Request),
