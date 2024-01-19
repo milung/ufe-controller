@@ -531,7 +531,10 @@ user_request_config(Request, Config, Filtered) :-
 
 filter_by_roles(Config, UserRoles, Filtered) :-
     is_dict(Config),
-    Contexts = Config.get(contexts),
+    ( Contexts = Config.get(contexts)
+    ->  true
+    ;   Contexts = []
+    ),
     filter_by_roles(Contexts, UserRoles, FilteredContexts),
     Filtered0 = Config.put(contexts, FilteredContexts),
     Navigations = Filtered0.get(apps),
