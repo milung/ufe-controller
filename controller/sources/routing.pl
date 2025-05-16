@@ -190,7 +190,7 @@ html_variables(
         'app_icon_small'=AppIconSmall,
         'pwa-mode'=PwaMode,
         'service-worker'=ServiceWorker,
-        'service-worker-scope'=SwScope,
+        'service-worker-scope'=SwScope
     ]
  ) :-
     context_variable_value(server:server_base_url, BaseUrl),
@@ -291,7 +291,7 @@ serve_spa( Request) :-
         codes('text/html; charset=UTF-8', Text),
         [ content_security_policy(CspNonce), 
           cache_control('public, max-age=5'),
-          service_worker_allowed(SwScope),
+          service_worker_allowed(SwScope)
         ]
     ).
 
