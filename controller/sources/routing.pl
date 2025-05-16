@@ -249,7 +249,8 @@ serve_manifest( Request) :-
     ).
 
 serve_sw( Request) :-
-    context_variable_value(service_worker, SwFile), 
+    context_variable_value(service_worker, SwFile),
+    context_variable_value(service_worker_scope, SwScope),
     new_memory_file(MemFile),
     open_memory_file(MemFile, write, Out),
     absolute_file_name(asset(SwFile), SwPath),
@@ -264,7 +265,8 @@ serve_sw( Request) :-
         http_response(
             Request, 
             binary_stream('text/javascript', MemIn),
-            [ cache_control('public, max-age=60') ]
+            [ cache_control('public, max-age=60'),
+              service_worker_allowed(SwScope) ]
         ),
         close(MemIn)
     ).
