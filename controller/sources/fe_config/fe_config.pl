@@ -154,7 +154,7 @@
      webcomponent_uri(Request, _, ETag),
      (   ETag \= []
      ->  \+ request_match_condition(Request, ETag, _, _),
-         context_variable_value(service_worker_scope, SwScope),
+         context_variable_value(routing:service_worker_scope, SwScope),
          throw(http_reply(not_modified, [
             cache_control('public, max-age=31536000, immutable'), 
             etag(ETag), 
@@ -162,7 +162,7 @@
          ]))
      ).
   serve_webcomponents(Request) :-
-    context_variable_value(service_worker_scope, SwScope),
+    context_variable_value(routing:service_worker_scope, SwScope),
     webcomponent_uri(Request, Uri, Hash),
     request_pass_through_headers(Request, RequestHeaders),
     log(info, fe_config, "Retrieving web component data at ~w", [Uri], []),
