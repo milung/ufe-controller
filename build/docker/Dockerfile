@@ -20,7 +20,7 @@ RUN npm run $BUILD_ENV
 ##########################################
 ####  build qsave state ##################
 ##########################################
-FROM swipl:9.2.9 AS saved-state
+FROM swipl:9.1.19 AS saved-state
 
 ENV http_port 80
 ENV base_url ''
@@ -43,7 +43,7 @@ RUN swipl -o bootfile -c run.pl
 #############################################
 #### TARGET controller Image ################
 #############################################
-FROM swipl:9.2.9
+FROM swipl:9.1.19
 
 LABEL maintainer="Milan Unger <milan.kvetko@gmail.com>"
 
