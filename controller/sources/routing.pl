@@ -87,8 +87,11 @@
     default('sw.mjs'), 
     describe(
         'Path to the script to be served as `sw.mjs` file when registering PWA \c
-        application. The path must be within the scope of the `/app/www/modules` folder \c
-        and relative to it.')]).
+        application. The path must be relative to the application root.')]).
+ :- context_variable(service_worker_scope, atom, [
+    env('SERVICE_WORKER_SCOPE'), 
+    default('/'), 
+    describe('scope of service worker')]).
  :- context_variable(pwa_mode, atom, [
     env('PWA_MODE'), 
     default(disabled), 
@@ -185,7 +188,9 @@ html_variables(
         'touch_icon'=Touchicon,
         'app_icon_large'=AppIconLarge,
         'app_icon_small'=AppIconSmall,
-        'pwa-mode'=PwaMode
+        'pwa-mode'=PwaMode,
+        'service-worker'=ServiceWorker,
+        'service-worker-scope'=SwScope,
     ]
  ) :-
     context_variable_value(server:server_base_url, BaseUrl),
@@ -199,6 +204,8 @@ html_variables(
     context_variable_value(app_icon_large, AppIconLarge),
     context_variable_value(app_icon_small, AppIconSmall),
     context_variable_value(pwa_mode, PwaMode),
+    context_variable_value(service_worker, ServiceWorker),
+    context_variable_value(service_worker_scope, SwScope),
     request_match_language(Request, SupportedLangs, Language), 
     html_lang_variable(Language, app_title, 'APPLICATION_TITLE', Title),
     html_lang_variable(Language, app_title_short, 'APPLICATION_TITLE_SHORT', ShortTitle),
@@ -272,6 +279,7 @@ serve_spa( Request) :-
     get_nonce(Nonce),
     interpolate_string(Csp, CspNonce, ['NONCE_VALUE'=Nonce], []),
     context_variable_value(accepts_languages, SupportedLangs),
+    context_variable_value(service_worker_scope, SwScope),
     request_match_language(Request, SupportedLangs, Language),
     asset_by_language(html('index.html'), Language, Asset),
     file_replace_nonce(Asset, Nonce, TemplateCodes),
@@ -281,7 +289,10 @@ serve_spa( Request) :-
     http_response(
         Request, 
         codes('text/html; charset=UTF-8', Text),
-        [ content_security_policy(CspNonce), cache_control('public, max-age=5') ]
+        [ content_security_policy(CspNonce), 
+          cache_control('public, max-age=5'),
+          service_worker_allowed(SwScope),
+        ]
     ).
 
 asset_by_language(Asset, Language, Path) :-

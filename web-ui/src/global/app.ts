@@ -1,6 +1,5 @@
 import "../services/ufe-registry" // create reference to apply side-effect
 
-
 export default async () => {
   /// custom elements can be repeatedly registered due to the rebundling in multiple web-components 
   /// (issue with mwc-web components) - this avoids error and only logs the issue
@@ -28,11 +27,10 @@ export default async () => {
   }
 };
 
-const registerServiceWorker = async () => {
+const registerServiceWorker = async (swPath: string, scope: string) => {
   if ("serviceWorker" in navigator) {
       try {
-          const registration = await navigator.serviceWorker.register(
-            "sw.mjs");
+          const registration = await navigator.serviceWorker.register(swPath, { scope, type: "module" });
           if (registration.installing) {
               console.log("Service worker installing");
           } else if (registration.waiting) {
@@ -49,7 +47,17 @@ const registerServiceWorker = async () => {
 const pwaModeMeta = Array.from(document.getElementsByTagName('meta')).filter( el => el.getAttribute('name') === 'ufe-pwa-mode');
 if (pwaModeMeta?.length > 0 && pwaModeMeta[0].getAttribute('content') === 'pwa') {
   console.log("PWA is enabled");
-  addEventListener("DOMContentLoaded", registerServiceWorker);
+  let swPath = "sw.mjs";
+  const swPathMeta = Array.from(document.getElementsByTagName('meta')).filter( el => el.getAttribute('name') === 'ufe-sw-path');
+  if (swPathMeta?.length > 0) {
+    swPath = swPathMeta[0].getAttribute('content');
+  }
+  let swScope = "/";
+  const swScopeMeta = Array.from(document.getElementsByTagName('meta')).filter( el => el.getAttribute('name') === 'ufe-sw-scope');
+  if (swScopeMeta?.length > 0) {
+    swScope = swScopeMeta[0].getAttribute('content');
+  }
+  addEventListener("DOMContentLoaded", () => registerServiceWorker(swPath, swScope));
 } else {
   console.log("PWA is disabled");
 }
