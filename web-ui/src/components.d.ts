@@ -21,6 +21,10 @@ export namespace Components {
     }
     interface UfeContext {
         "context": string;
+        "data": {
+    [key: string]: any
+  };
+        "extraAttributes": { [key: string]: string};
         "selector": string;
     }
     interface UfeDefaultShell {
@@ -91,6 +95,10 @@ declare namespace LocalJSX {
     }
     interface UfeContext {
         "context"?: string;
+        "data"?: {
+    [key: string]: any
+  };
+        "extraAttributes"?: { [key: string]: string};
         "selector"?: string;
     }
     interface UfeDefaultShell {

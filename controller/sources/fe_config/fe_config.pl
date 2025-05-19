@@ -306,11 +306,11 @@ k8s_refresh_webc_list :-
     findall(
         Resource,
         k8s_get_resource(
-            'fe.milung.eu', 
+            'fe.milung.eu',
             v1, 
             webcomponents,
-            _InstanceName, 
-            Resource, 
+            _InstanceName,
+            Resource,
             []
         ),
         Resources
