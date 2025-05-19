@@ -15,15 +15,15 @@ COPY web-ui .
 
 ARG BUILD_ENV=build.prod
 
-RUN npm run $BUILD_ENV
+RUN mkdir -p /app/dist; npm run $BUILD_ENV
 
 ##########################################
 ####  build qsave state ##################
 ##########################################
 FROM swipl:9.1.19 AS saved-state
 
-ENV http_port 80
-ENV base_url ''
+ENV http_port=80
+ENV base_url=''
 
 RUN apt update
 RUN apt install -y git
